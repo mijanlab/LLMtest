@@ -22,6 +22,7 @@ from llmtest.benchmark import (
     print_table,
     print_summary_card,
     export_markdown_report,
+    export_csv_report,
     export_html_report,
     CLR_RESET,
     CLR_BOLD,
@@ -69,67 +70,41 @@ def handle_update():
             if res.returncode == 0:
                 success = True
             else:
-                err_text = (res.stderr.strip() or res.stdout.strip())
-                if err_text:
-                    error_msgs.append(err_text)
+                error_msgs.append(f"pip error: {res.stderr.strip()}")
         except Exception as e:
-            error_msgs.append(str(e))
+            error_msgs.append(f"pip error: {e}")
 
-    # 3. Try global pip3 / pip as fallback if still not succeeded
+    # 3. Fallback to global pip3 / pip
     if not success:
-        for pip_cmd_name in ["pip3", "pip"]:
-            pip_bin = shutil.which(pip_cmd_name)
-            if pip_bin:
-                cmd = [pip_bin, "install", "--upgrade", "--no-cache-dir", repo_url]
+        for bin_name in ["pip3", "pip"]:
+            if shutil.which(bin_name):
+                cmd = [bin_name, "install", "--upgrade", "--no-cache-dir", repo_url]
                 try:
                     res = subprocess.run(cmd, capture_output=True, text=True)
                     if res.returncode == 0:
                         success = True
                         break
                     else:
-                        err_text = (res.stderr.strip() or res.stdout.strip())
-                        if err_text:
-                            error_msgs.append(err_text)
+                        error_msgs.append(f"{bin_name} error: {res.stderr.strip()}")
                 except Exception as e:
-                    error_msgs.append(str(e))
-
-    # 4. Try pipx as general fallback if available
-    if not success and shutil.which("pipx"):
-        cmd = ["pipx", "install", "--force", repo_url]
-        try:
-            res = subprocess.run(cmd)
-            if res.returncode == 0:
-                success = True
-        except Exception as e:
-            error_msgs.append(str(e))
+                    error_msgs.append(f"{bin_name} error: {e}")
 
     if success:
-        print(f"\n {CLR_GREEN}✔{CLR_RESET} {CLR_BOLD}llmtest successfully updated!{CLR_RESET}\n")
+        print(f" {CLR_GREEN}✔ Successfully updated llmtest to the latest version from GitHub!{CLR_RESET}\n")
     else:
-        print(f"\n {CLR_RED}✖ Update failed.{CLR_RESET}")
+        print(f" {CLR_RED}✖ Update failed. You can manually run:{CLR_RESET}")
+        print(f"   {CLR_CYAN}pip install --upgrade --no-cache-dir {repo_url}{CLR_RESET}\n")
         if error_msgs:
-            print(f" {CLR_GRAY}Details:{CLR_RESET} {error_msgs[-1]}")
-        print(f"\n {CLR_GRAY}Try updating manually:{CLR_RESET}")
-        print(f"   {CLR_CYAN}pipx install --force {repo_url}{CLR_RESET}   (for pipx)")
-        print(f"   {CLR_CYAN}pip3 install --upgrade {repo_url}{CLR_RESET}  (for pip3)\n")
+            print(f" {CLR_GRAY}Diagnostic info:{CLR_RESET}")
+            for msg in error_msgs:
+                print(f"   {CLR_GRAY}{msg}{CLR_RESET}")
     sys.exit(0)
 
 def handle_uninstall():
-    """Uninstalls llmtest from the current environment (pipx / pip / pip3)."""
-    print(f"\n{CLR_YELLOW}⚠ You are about to uninstall llmtest.{CLR_RESET}")
-    try:
-        confirm = input(" Are you sure you want to proceed? (y/N): ").strip().lower()
-    except (KeyboardInterrupt, EOFError):
-        print(f"\n{CLR_GRAY}Cancelled.{CLR_RESET}\n")
-        sys.exit(0)
-
-    if confirm not in ["y", "yes"]:
-        print(f"\n{CLR_GRAY}Uninstallation cancelled.{CLR_RESET}\n")
-        sys.exit(0)
-
+    """Uninstalls llmtest from the system environment."""
+    print(f"\n{CLR_BOLD}🗑️  Uninstalling llmtest...{CLR_RESET}")
     success = False
 
-    # 1. If running under pipx
     if is_pipx_environment() and shutil.which("pipx"):
         cmd = ["pipx", "uninstall", "llmtest"]
         try:
@@ -139,33 +114,8 @@ def handle_uninstall():
         except Exception:
             pass
 
-    # 2. Try sys.executable -m pip
     if not success:
         cmd = [sys.executable, "-m", "pip", "uninstall", "-y", "llmtest"]
-        try:
-            res = subprocess.run(cmd, capture_output=True, text=True)
-            if res.returncode == 0:
-                success = True
-        except Exception:
-            pass
-
-    # 3. Try global pip3 / pip
-    if not success:
-        for pip_cmd_name in ["pip3", "pip"]:
-            pip_bin = shutil.which(pip_cmd_name)
-            if pip_bin:
-                cmd = [pip_bin, "uninstall", "-y", "llmtest"]
-                try:
-                    res = subprocess.run(cmd, capture_output=True, text=True)
-                    if res.returncode == 0:
-                        success = True
-                        break
-                except Exception:
-                    pass
-
-    # 4. Try pipx general fallback
-    if not success and shutil.which("pipx"):
-        cmd = ["pipx", "uninstall", "llmtest"]
         try:
             res = subprocess.run(cmd)
             if res.returncode == 0:
@@ -173,70 +123,122 @@ def handle_uninstall():
         except Exception:
             pass
 
+    if not success:
+        for bin_name in ["pip3", "pip"]:
+            if shutil.which(bin_name):
+                cmd = [bin_name, "uninstall", "-y", "llmtest"]
+                try:
+                    res = subprocess.run(cmd)
+                    if res.returncode == 0:
+                        success = True
+                        break
+                except Exception:
+                    pass
+
     if success:
-        print(f"\n {CLR_GREEN}✔{CLR_RESET} {CLR_BOLD}llmtest has been successfully uninstalled.{CLR_RESET}\n")
+        print(f" {CLR_GREEN}✔ llmtest has been completely uninstalled.{CLR_RESET}\n")
     else:
-        print(f"\n {CLR_RED}✖ Uninstall failed.{CLR_RESET}")
-        print(f" {CLR_GRAY}Try running manually:{CLR_RESET}")
-        print(f"   {CLR_CYAN}pipx uninstall llmtest{CLR_RESET} (if installed via pipx)")
-        print(f"   {CLR_CYAN}pip3 uninstall llmtest{CLR_RESET} (if installed via pip3)\n")
+        print(f" {CLR_RED}✖ Uninstall failed. You can run manually:{CLR_RESET}")
+        print(f"   {CLR_CYAN}pip uninstall -y llmtest{CLR_RESET}\n")
     sys.exit(0)
 
 def prompt_wizard():
-    """Runs a streamlined, friendly interactive wizard for first-time or no-arg runs."""
-    print(BANNER + "\n")
+    """Interactive CLI wizard when user runs `llmtest` with zero arguments."""
+    print(f"\n{CLR_CYAN}⚡ Interactive Setup Wizard{CLR_RESET}")
+    print(f"{CLR_GRAY}Follow the steps below to configure your benchmark run:{CLR_RESET}\n")
 
-    # Smart defaults from environment if present
-    env_endpoint = os.environ.get("OPENAI_BASE_URL") or os.environ.get("LLM_ENDPOINT") or "https://api.openai.com/v1"
-    env_key = os.environ.get("OPENAI_API_KEY") or ""
+    # Step 1: Endpoint
+    while True:
+        try:
+            ep_input = input(f"{CLR_BOLD}1. API Endpoint URL{CLR_RESET} (e.g. https://lab.proclfy.link/v1): ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print("\nExiting.")
+            sys.exit(0)
 
-    # 1. Endpoint
-    ep_prompt = f" {CLR_BOLD}◆ API Endpoint URL{CLR_RESET} {CLR_GRAY}[{env_endpoint}]{CLR_RESET}: "
+        if not ep_input:
+            print(f"   {CLR_RED}✖ Endpoint URL cannot be empty.{CLR_RESET}")
+            continue
+        if ep_input.lower() in ("update", "--update"):
+            handle_update()
+        if ep_input.lower() in ("uninstall", "--uninstall"):
+            handle_uninstall()
+        if ep_input.lower() in ("exit", "quit", "q"):
+            print("Exiting.")
+            sys.exit(0)
+        endpoint = ep_input
+        break
+
+    # Step 2: API Key
     try:
-        raw_ep = input(ep_prompt).strip()
+        key_input = input(f"\n{CLR_BOLD}2. API Key{CLR_RESET} [press Enter if none]: ").strip()
     except (KeyboardInterrupt, EOFError):
-        print(f"\n{CLR_GRAY}Cancelled.{CLR_RESET}")
+        print("\nExiting.")
         sys.exit(0)
-    endpoint = raw_ep or env_endpoint
+    api_key = key_input
 
-    # 2. API Key
-    key_hint = f"{CLR_GRAY}(masked, press Enter if none or skip){CLR_RESET}"
-    if env_key:
-        key_hint = f"{CLR_GRAY}(found in $OPENAI_API_KEY, press Enter to use){CLR_RESET}"
-    key_prompt = f" {CLR_BOLD}◆ API Key{CLR_RESET} {key_hint}: "
+    # Step 3: Filter
     try:
-        raw_key = input(key_prompt).strip()
+        filter_input = input(f"\n{CLR_BOLD}3. Model Filter{CLR_RESET} [e.g. 'free', 'flash', or Enter for all]: ").strip()
     except (KeyboardInterrupt, EOFError):
-        print(f"\n{CLR_GRAY}Cancelled.{CLR_RESET}")
+        print("\nExiting.")
         sys.exit(0)
-    key = raw_key if raw_key else (env_key if not raw_key else "")
+    model_filter = filter_input
 
-    # 3. Model Filter
-    filter_prompt = f" {CLR_BOLD}◆ Filter Models{CLR_RESET} {CLR_GRAY}(optional, e.g. 'flash', 'free', 'gpt' or Enter for all){CLR_RESET}: "
+    # Step 4: Concurrency
     try:
-        model_filter = input(filter_prompt).strip()
+        conc_input = input(f"\n{CLR_BOLD}4. Concurrency{CLR_RESET} [default 3 workers]: ").strip()
     except (KeyboardInterrupt, EOFError):
-        model_filter = ""
-
-    # 4. Concurrency
-    conc_prompt = f" {CLR_BOLD}◆ Concurrency{CLR_RESET} {CLR_GRAY}[default: 3]{CLR_RESET}: "
-    try:
-        raw_conc = input(conc_prompt).strip()
-        concurrency = int(raw_conc) if raw_conc.isdigit() and int(raw_conc) > 0 else 3
-    except (KeyboardInterrupt, EOFError):
-        concurrency = 3
+        print("\nExiting.")
+        sys.exit(0)
+    concurrency = 3
+    if conc_input:
+        try:
+            concurrency = max(1, int(conc_input))
+        except ValueError:
+            concurrency = 3
 
     print()
-    return endpoint, key, model_filter, concurrency
+    return endpoint, api_key, model_filter, concurrency
+
+def handle_render_from_json(json_path: str, args):
+    """Renders HTML, Markdown, and CSV reports from an existing benchmark JSON file."""
+    if not os.path.exists(json_path):
+        print(f"{CLR_RED}✖ JSON report file not found: {json_path}{CLR_RESET}")
+        sys.exit(1)
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"{CLR_RED}✖ Failed to parse JSON report {json_path}: {e}{CLR_RESET}")
+        sys.exit(1)
+
+    endpoint = data.get("endpoint", "Unknown Endpoint")
+    results = data.get("results", [])
+
+    print(f"\n{CLR_BOLD}📂 Rendering reports from: {CLR_CYAN}{os.path.abspath(json_path)}{CLR_RESET}")
+    print(f" {CLR_GRAY}• Endpoint: {endpoint}{CLR_RESET}")
+    print(f" {CLR_GRAY}• Models  : {len(results)}{CLR_RESET}\n")
+
+    # Display table & card
+    print_table(results)
+    print_summary_card(results, 0.0)
+
+    if not args.no_report:
+        print(f"{CLR_BOLD}📁 Exported Reports:{CLR_RESET}")
+        if args.output_html:
+            export_html_report(results, args.output_html, endpoint)
+        if args.output_md:
+            export_markdown_report(results, args.output_md, endpoint)
+        if args.output_csv:
+            export_csv_report(results, args.output_csv, endpoint)
+
+    if args.open and args.output_html:
+        html_uri = f"file:///{os.path.abspath(args.output_html).replace(os.sep, '/')}"
+        webbrowser.open(html_uri)
 
 def main():
-    # Early intercept for update / uninstall subcommands or flags
-    if len(sys.argv) > 1:
-        first_arg = sys.argv[1].strip().lower()
-        if first_arg in ["update", "upgrade", "--update", "--upgrade"]:
-            handle_update()
-        elif first_arg in ["uninstall", "remove", "--uninstall", "--remove"]:
-            handle_uninstall()
+    print(BANNER)
 
     parser = argparse.ArgumentParser(
         prog="llmtest",
@@ -244,16 +246,20 @@ def main():
         usage="%(prog)s [endpoint | update | uninstall] [key] [filter] [options]"
     )
     # Positional shortcuts (for ultra-short command lines)
-    parser.add_argument("pos_endpoint", nargs="?", default="", help="API endpoint URL, or 'update' / 'uninstall' (e.g. https://lab.proclfy.link/v1)")
+    parser.add_argument("pos_endpoint", nargs="?", default="", help="API endpoint URL, JSON report path, or 'update' / 'uninstall'")
     parser.add_argument("pos_key", nargs="?", default="", help="API Key (optional)")
     parser.add_argument("pos_filter", nargs="?", default="", help="Model filter keyword (e.g. 'free', 'flash')")
 
     # Version flag
-    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.1", help="Show version number and exit")
+    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.2", help="Show version number and exit")
 
     # Management flags
     parser.add_argument("--update", action="store_true", help="Update llmtest to the latest version from GitHub")
     parser.add_argument("--uninstall", action="store_true", help="Uninstall llmtest from your Python environment")
+
+    # Report rendering from JSON
+    parser.add_argument("--report", "--render", type=str, default="", help="Render interactive HTML/MD/CSV report from an existing benchmark JSON file")
+    parser.add_argument("--no-report", action="store_true", help="Do not write report files to disk")
 
     # Named options
     parser.add_argument("--endpoint", "-e", type=str, default="", help="API endpoint URL")
@@ -268,6 +274,7 @@ def main():
     parser.add_argument("--timeout", type=int, default=35, help="Request timeout in seconds (default: 35s)")
     parser.add_argument("--output-html", "--html", type=str, default="benchmark_report.html", help="Interactive HTML report output path")
     parser.add_argument("--output-md", type=str, default="benchmark_report.md", help="Markdown report output path")
+    parser.add_argument("--output-csv", "--csv", type=str, default="benchmark_report.csv", help="CSV report output path")
     parser.add_argument("--output-json", type=str, default="benchmark_report.json", help="JSON report output path")
     parser.add_argument("--open", action="store_true", help="Automatically open interactive Web UI report in browser")
 
@@ -277,6 +284,14 @@ def main():
         handle_update()
     if args.uninstall:
         handle_uninstall()
+
+    # Check if rendering existing report from JSON
+    if args.report:
+        handle_render_from_json(args.report, args)
+        return
+    if args.pos_endpoint and args.pos_endpoint.endswith(".json") and os.path.exists(args.pos_endpoint):
+        handle_render_from_json(args.pos_endpoint, args)
+        return
 
     endpoint = args.pos_endpoint or args.endpoint
     key = args.pos_key or args.key
@@ -371,18 +386,21 @@ def main():
     print_summary_card(results, total_wall_time)
 
     # Export reports
-    print(f"{CLR_BOLD}📁 Exported Reports:{CLR_RESET}")
-    if args.output_html:
-        export_html_report(results, args.output_html, endpoint)
-    if args.output_md:
-        export_markdown_report(results, args.output_md, endpoint)
-    if args.output_json:
-        with open(args.output_json, "w", encoding="utf-8") as f:
-            json.dump({"endpoint": endpoint, "tested_at": time.time(), "results": results}, f, indent=2)
-        print(f" {CLR_GREEN}✔{CLR_RESET} JSON report     : {CLR_CYAN}{os.path.abspath(args.output_json)}{CLR_RESET}")
+    if not args.no_report:
+        print(f"{CLR_BOLD}📁 Exported Reports:{CLR_RESET}")
+        if args.output_html:
+            export_html_report(results, args.output_html, endpoint)
+        if args.output_md:
+            export_markdown_report(results, args.output_md, endpoint)
+        if args.output_csv:
+            export_csv_report(results, args.output_csv, endpoint)
+        if args.output_json:
+            with open(args.output_json, "w", encoding="utf-8") as f:
+                json.dump({"endpoint": endpoint, "tested_at": time.time(), "results": results}, f, indent=2)
+            print(f" {CLR_GREEN}✔{CLR_RESET} JSON report     : {CLR_CYAN}{os.path.abspath(args.output_json)}{CLR_RESET}")
 
-    # Auto-open in browser if requested or interactive
-    if args.open and args.output_html:
+    # Auto-open in browser if requested
+    if args.open and args.output_html and not args.no_report:
         html_uri = f"file:///{os.path.abspath(args.output_html).replace(os.sep, '/')}"
         webbrowser.open(html_uri)
 
@@ -394,6 +412,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

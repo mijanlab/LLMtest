@@ -4,7 +4,7 @@
 
 **Ultra-fast, zero-dependency streaming latency & throughput benchmark for OpenAI-compatible LLM endpoints.**
 
-[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.1-09090b?style=flat-square&logo=pypi&logoColor=white&labelColor=27272a)](https://github.com/mijanlab/LLMtest)
+[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.2-09090b?style=flat-square&logo=pypi&logoColor=white&labelColor=27272a)](https://github.com/mijanlab/LLMtest)
 [![Python Version](https://img.shields.io/badge/python-3.10+-09090b?style=flat-square&logo=python&logoColor=white&labelColor=27272a)](https://python.org)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-09090b?style=flat-square&labelColor=27272a)](https://github.com/mijanlab/LLMtest)
 [![License](https://img.shields.io/badge/license-MIT-09090b?style=flat-square&labelColor=27272a)](LICENSE)
@@ -18,7 +18,7 @@
 <br />
 
 ```text
-  ⚡ LLM Speed & Latency Benchmark (v1.0.1)
+  ⚡ LLM Speed & Latency Benchmark (v1.0.2)
   ═══════════════════════════════════════════════════════════════════════════════════
   Endpoint : https://lab.proclfy.link/v1
   Models   : 8 discovered | Concurrency: 1 | Prompt: 4 tokens ("Say hello in 5 words")
@@ -129,23 +129,42 @@ llmtest uninstall
 | `--prompt` | `string` | `"Say hello in 5 words"` | Custom evaluation prompt string |
 | `--runs` | `int` | `1` | Number of test repetitions per model |
 | `--timeout` | `float` | `35.0` | HTTP request timeout in seconds |
+| `--report` / `--render` | `path` | `""` | Render HTML/MD/CSV reports from an existing benchmark JSON file |
+| `--no-report` | `flag` | `False` | Disable writing report files to disk |
 | `--open` | `flag` | `False` | Automatically open interactive HTML report in default browser |
-| `--output-html` | `string` | `"benchmark_report.html"` | Interactive HTML report destination |
+| `--output-html` / `--html` | `string` | `"benchmark_report.html"` | Interactive HTML report destination |
 | `--output-md` | `string` | `"benchmark_report.md"` | Markdown table report destination |
+| `--output-csv` / `--csv` | `string` | `"benchmark_report.csv"` | Structured CSV report destination |
 | `--output-json` | `string` | `"benchmark_report.json"` | Raw JSON report destination |
 
 ---
 
 ## Interactive Web Report
 
-Every benchmark run generates a self-contained, standalone **`benchmark_report.html`** dashboard that requires zero backend servers:
+Every benchmark run generates a self-contained, standalone **`benchmark_report.html`** dashboard that requires zero backend servers or CDNs (works 100% offline):
 
-* **Dark Mode UI**: Clean shadcn/ui-inspired dashboard.
-* **Clickable Terminal URL**: Direct `file:///` link in the terminal with Ctrl+Click support.
-* **Instant Search & Sort**: Filter by model name, status (Passed/Failed), and sort columns by TTFT, throughput, or total latency.
-* **Visual Latency Bars**: Comparative visual progress bars for each model.
-* **Token Inspection Modal**: Click on any model row to inspect the full generation output, response text, and token details.
-* **1-Click Export**: Copy formatted markdown table or export JSON directly from the web report.
+* **Next-Gen Obsidian / Dark Glassmorphism UI**: High-contrast, executive-level dashboard with sleek luminous accents.
+* **Interactive Visual Matrix**: Canvas-based TTFT latency vs throughput scatter plot with interactive hover tooltips and quadrant indicators.
+* **Leaderboards & Analytics**: Live top streaming speed and lowest TTFT latency leaderboard bar charts.
+* **Dual View Modes**: Seamless toggle between **Table View** and responsive **Bento Cards Grid View**.
+* **Head-to-Head Model Comparison**: Select 2–4 models with checkboxes to compare metrics, latency, speed, and raw completions side-by-side in a comparison drawer.
+* **Rich Model Inspection Modal**: Detailed modal displaying status, TTFT, throughput, total time, output preview with syntax styling, error diagnostics, and raw JSON payload.
+* **Multi-Format Export**: 1-click Markdown table copy, Shareable Summary Card copy, CSV download, JSON export, and print-optimized PDF view.
+* **Instant Search & Hotkeys**: Real-time debounce filter (`/` hotkey to focus search) and quick status chips (*All*, *Passed*, *Skipped*, *Failed*).
+
+---
+
+## Re-rendering Reports from JSON
+
+You can re-generate or view reports from any existing `benchmark_report.json` without re-running models:
+
+```bash
+# Render HTML, Markdown, and CSV reports and open in browser
+llmtest --report benchmark_report.json --open
+
+# Or shorthand
+llmtest benchmark_report.json
+```
 
 ---
 
