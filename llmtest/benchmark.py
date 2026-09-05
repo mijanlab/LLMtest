@@ -419,7 +419,7 @@ def benchmark_model(chat_url: str, model_id: str, api_key: str, prompt: str, sys
 
 def print_table(results):
     """
-    Renders a modern, cleanly aligned table with colored badges.
+    Renders a modern, cleanly aligned table with colored badges and accurate notes.
     """
     col_idx = 3
     col_model = 27
@@ -427,7 +427,7 @@ def print_table(results):
     col_ttft = 10
     col_total = 10
     col_tps = 12
-    col_preview = 32
+    col_preview = 34
 
     sep = f"┌{'─'*(col_idx+2)}┬{'─'*(col_model+2)}┬{'─'*(col_status+2)}┬{'─'*(col_ttft+2)}┬{'─'*(col_total+2)}┬{'─'*(col_tps+2)}┬{'─'*(col_preview+2)}┐"
     mid_sep = f"├{'─'*(col_idx+2)}┼{'─'*(col_model+2)}┼{'─'*(col_status+2)}┼{'─'*(col_ttft+2)}┼{'─'*(col_total+2)}┼{'─'*(col_tps+2)}┼{'─'*(col_preview+2)}┤"
@@ -453,19 +453,21 @@ def print_table(results):
             status_text = "🔴 FAIL"
             status_display = f"{CLR_RED}{status_text:<{col_status}}{CLR_RESET}"
 
-        ttft_str = f"{r['avg_ttft']*1000:.0f} ms" if r['avg_ttft'] and r['avg_ttft'] < 1 else (f"{r['avg_ttft']:.3f} s" if r['avg_ttft'] else "—")
-        total_str = f"{r['avg_total']:.3f} s" if r['avg_total'] else "—"
-        tps_str = f"{r['avg_tps']:.1f} tok/s" if r['avg_tps'] else "—"
+        ttft_str = f"{r['avg_ttft']*1000:.0f} ms" if r.get('avg_ttft') and r['avg_ttft'] < 1 else (f"{r['avg_ttft']:.3f} s" if r.get('avg_ttft') else "—")
+        total_str = f"{r['avg_total']:.3f} s" if r.get('avg_total') else "—"
+        tps_str = f"{r['avg_tps']:.1f} tok/s" if r.get('avg_tps') else "—"
 
         if r['status'] == "PASS":
-            preview = (r['sample_preview'] or "").replace("\n", " ")
+            preview = (r.get('sample_preview') or "").replace("\n", " ")
             note = f'"{preview}"' if len(preview) <= (col_preview - 2) else f'"{preview[:col_preview-5]}..."'
         elif r['status'] == "SKIPPED":
-            note = f"{CLR_GRAY}Non-available fund (skipped){CLR_RESET}"
+            skip_msg = r.get('skip_reason') or ("; ".join(r.get('errors', [])) if r.get('errors') else "Skipped")
+            clean_skip = skip_msg.replace("\n", " ")
+            note = f"{CLR_GRAY}{clean_skip[:col_preview-3]}...{CLR_RESET}" if len(clean_skip) > col_preview else f"{CLR_GRAY}{clean_skip}{CLR_RESET}"
         else:
-            err_msg = "; ".join(r['errors']) or "Failed"
+            err_msg = "; ".join(r.get('errors', [])) or "Failed"
             clean_err = err_msg.replace("\n", " ")
-            note = clean_err if len(clean_err) <= col_preview else f"{clean_err[:col_preview-3]}..."
+            note = f"{CLR_RED}{clean_err[:col_preview-3]}...{CLR_RESET}" if len(clean_err) > col_preview else f"{CLR_RED}{clean_err}{CLR_RESET}"
 
         m_name = (r['model'][:col_model-3] + "...") if len(r['model']) > col_model else r['model']
         row = f"│ {i:<{col_idx}} │ {m_name:<{col_model}} │ {status_display} │ {ttft_str:<{col_ttft}} │ {total_str:<{col_total}} │ {tps_str:<{col_tps}} │ {note:<{col_preview}} │"
@@ -473,9 +475,10 @@ def print_table(results):
 
     print(bot_sep)
 
+
 def print_summary_card(results, total_duration: float):
     """
-    Prints a concise executive summary card of the benchmark results.
+    Prints an accurate executive summary card of the benchmark results.
     """
     passed = [r for r in results if r['status'] == "PASS"]
     skipped = [r for r in results if r['status'] == "SKIPPED"]
@@ -483,56 +486,60 @@ def print_summary_card(results, total_duration: float):
     total = len(results)
     pass_count = len(passed)
     skip_count = len(skipped)
-    pass_pct = (pass_count / (total - skip_count) * 100) if (total - skip_count) > 0 else 0
+    fail_count = len(failed)
+    pass_pct = (pass_count / total * 100) if total > 0 else 0
 
-    fastest_ttft = min((r for r in passed if r['avg_ttft'] is not None), key=lambda x: x['avg_ttft'], default=None)
-    highest_tps = max((r for r in passed if r['avg_tps'] is not None), key=lambda x: x['avg_tps'], default=None)
+    fastest_ttft = min((r for r in passed if r.get('avg_ttft') is not None), key=lambda x: x['avg_ttft'], default=None)
+    highest_tps = max((r for r in passed if r.get('avg_tps') is not None), key=lambda x: x['avg_tps'], default=None)
 
     print(f"\n{CLR_BOLD}📊 Benchmark Summary{CLR_RESET}")
     print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Total Models Tested{CLR_RESET} : {total}")
-    print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Success Rate       {CLR_RESET} : {CLR_GREEN if pass_pct == 100 else CLR_YELLOW}{pass_count}/{total - skip_count} active passed ({pass_pct:.0f}%){CLR_RESET}")
+    print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Working & Passed   {CLR_RESET} : {CLR_GREEN if pass_count > 0 else CLR_RED}{pass_count}/{total} models ({pass_pct:.1f}%){CLR_RESET}")
     if skip_count > 0:
-        print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Skipped (No Funds) {CLR_RESET} : {CLR_GRAY}{skip_count} models (Non-available fund models are skipped){CLR_RESET}")
+        print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Skipped / Throttled{CLR_RESET} : {CLR_GRAY}{skip_count} models (Rate-limited, quota, or restricted){CLR_RESET}")
+    if fail_count > 0:
+        print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Failed Execution   {CLR_RESET} : {CLR_RED}{fail_count} models{CLR_RESET}")
     if fastest_ttft:
         f_val = f"{fastest_ttft['avg_ttft']*1000:.0f} ms" if fastest_ttft['avg_ttft'] < 1 else f"{fastest_ttft['avg_ttft']:.3f} s"
         print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Fastest TTFT       {CLR_RESET} : {CLR_CYAN}{fastest_ttft['model']}{CLR_RESET} ({f_val})")
     if highest_tps:
         print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Highest Speed      {CLR_RESET} : {CLR_CYAN}{highest_tps['model']}{CLR_RESET} ({highest_tps['avg_tps']:.1f} tok/s)")
-    print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Total Time Elapsed {CLR_RESET} : {total_duration:.2f}s")
-    print(f"\n {CLR_DIM}ℹ️  Note: Non-available fund models are skipped.{CLR_RESET}\n")
+    if total_duration > 0:
+        print(f" {CLR_GRAY}•{CLR_RESET} {CLR_BOLD}Total Time Elapsed {CLR_RESET} : {total_duration:.2f}s")
+    print()
+
 
 def export_markdown_report(results, filepath: str, endpoint: str):
     passed_count = sum(1 for r in results if r.get('status') == 'PASS')
     skipped_count = sum(1 for r in results if r.get('status') == 'SKIPPED')
     failed_count = sum(1 for r in results if r.get('status') == 'FAIL')
+    total = len(results)
 
     lines = [
         f"# LLM Models Benchmark Report",
         f"",
         f"- **Endpoint Tested**: `{endpoint}`",
         f"- **Tested At**: {time.strftime('%Y-%m-%d %H:%M:%S')}",
-        f"- **Total Models**: {len(results)}",
-        f"- **Passed (Working)**: {passed_count}",
-        f"- **Skipped (No Funds)**: {skipped_count}",
+        f"- **Total Models**: {total}",
+        f"- **Passed (Working)**: {passed_count} ({(passed_count/total*100) if total else 0:.1f}%)",
+        f"- **Skipped (Throttled/Quota)**: {skipped_count}",
         f"- **Failed**: {failed_count}",
-        f"",
-        f"> ℹ️ **Note**: Non-available fund models are skipped from active benchmark runs.",
         f"",
         f"## Results Summary Table",
         f"",
-        f"| # | Model ID | Status | TTFT (Time to First Token) | Total Time | Throughput | Output Preview / Notes |",
+        f"| # | Model ID | Status | TTFT | Total Time | Throughput | Output Preview / Notes |",
         f"|---|---|---|---|---|---|---|"
     ]
 
     for i, r in enumerate(results, 1):
         if r.get('status') == "PASS":
-            status_badge = f"🟢 {r.get('success', 1)}/{r.get('runs', 1)} OK"
+            status_badge = f"🟢 PASS"
         elif r.get('status') == "PARTIAL":
-            status_badge = f"🟡 {r.get('success', 0)}/{r.get('runs', 1)} Partial"
+            status_badge = f"🟡 PARTIAL"
         elif r.get('status') == "SKIPPED":
-            status_badge = f"⚪ Skipped"
+            status_badge = f"⚪ SKIP"
         else:
-            status_badge = f"🔴 0/{r.get('runs', 1)} FAIL"
+            status_badge = f"🔴 FAIL"
 
         ttft_str = f"{r['avg_ttft']*1000:.0f} ms" if r.get('avg_ttft') and r['avg_ttft'] < 1 else (f"{r['avg_ttft']:.3f} s" if r.get('avg_ttft') else "—")
         total_str = f"{r['avg_total']:.3f} s" if r.get('avg_total') else "—"
@@ -542,7 +549,7 @@ def export_markdown_report(results, filepath: str, endpoint: str):
             preview = (r.get('sample_preview') or "").replace("|", "\\|").replace("\n", " ")
             note = f'"{preview}"'
         elif r.get('status') == "SKIPPED":
-            note = "Non-available fund (skipped)"
+            note = (r.get('skip_reason') or "; ".join(r.get('errors', [])) or "Skipped").replace("|", "\\|").replace("\n", " ")
         else:
             note = ("; ".join(r.get('errors', [])) or "Failed").replace("|", "\\|").replace("\n", " ")
 
@@ -556,7 +563,7 @@ def export_markdown_report(results, filepath: str, endpoint: str):
 
 def export_csv_report(results, filepath: str, endpoint: str):
     """
-    Exports benchmark results to a structured CSV file.
+    Exports benchmark results to a structured CSV file with accurate notes.
     """
     import csv
     with open(filepath, "w", newline="", encoding="utf-8") as f:
@@ -564,9 +571,13 @@ def export_csv_report(results, filepath: str, endpoint: str):
         writer.writerow(["Model ID", "Status", "Success Runs", "Total Runs", "Avg TTFT (s)", "Avg Total Time (s)", "Avg Speed (tok/s)", "Preview / Note", "Endpoint", "Timestamp"])
         timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
         for r in results:
-            note = r.get("sample_preview") or ("; ".join(r.get("errors", [])) if r.get("errors") else "")
-            if r.get("status") == "SKIPPED":
-                note = "Non-available fund / skipped"
+            if r.get("status") == "PASS":
+                note = r.get("sample_preview") or ""
+            elif r.get("status") == "SKIPPED":
+                note = r.get("skip_reason") or ("; ".join(r.get("errors", [])) if r.get("errors") else "Skipped")
+            else:
+                note = "; ".join(r.get("errors", [])) if r.get("errors") else "Execution error"
+
             writer.writerow([
                 r.get("model", ""),
                 r.get("status", ""),
@@ -1220,7 +1231,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     .preview-truncate {
       color: var(--text-muted);
       font-size: 12.5px;
-      max-width: 300px;
+      max-width: 320px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1516,7 +1527,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
           <span class="kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg></span>
         </div>
         <div class="kpi-value" id="kpi-total">0</div>
-        <div class="kpi-sub" id="kpi-pass-rate">0 passed, 0 skipped</div>
+        <div class="kpi-sub" id="kpi-pass-rate">0 passed, 0 failed</div>
         <div class="kpi-progress">
           <div class="kpi-prog-pass" id="bar-pass" style="width: 0%;"></div>
           <div class="kpi-prog-skip" id="bar-skip" style="width: 0%;"></div>
@@ -1527,7 +1538,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       <div class="kpi-card">
         <div class="kpi-top">
           <span class="kpi-label">Fastest First Token</span>
-          <span class="kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg></span>
+          <span class="kpi-icon" style="color: var(--neon-green);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg></span>
         </div>
         <div class="kpi-value" style="color: var(--neon-green); text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);" id="kpi-ttft">—</div>
         <div class="kpi-sub" id="kpi-ttft-model">—</div>
@@ -1536,7 +1547,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       <div class="kpi-card">
         <div class="kpi-top">
           <span class="kpi-label">Peak Throughput</span>
-          <span class="kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 2-2 2.5V8l2-2.5V2Z"></path><path d="m19 10-2.5-2V5.5L19 8v2Z"></path><circle cx="12" cy="14" r="8"></circle><line x1="12" y1="14" x2="16" y2="10"></line></svg></span>
+          <span class="kpi-icon" style="color: var(--neon-green);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 2-2 2.5V8l2-2.5V2Z"></path><path d="m19 10-2.5-2V5.5L19 8v2Z"></path><circle cx="12" cy="14" r="8"></circle><line x1="12" y1="14" x2="16" y2="10"></line></svg></span>
         </div>
         <div class="kpi-value" style="color: var(--neon-green); text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);" id="kpi-speed">—</div>
         <div class="kpi-sub" id="kpi-speed-model">—</div>
@@ -1544,8 +1555,8 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
 
       <div class="kpi-card">
         <div class="kpi-top">
-          <span class="kpi-label">Active Pass Rate</span>
-          <span class="kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
+          <span class="kpi-label">Pass Rate</span>
+          <span class="kpi-icon" style="color: var(--neon-green);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
         </div>
         <div class="kpi-value" style="color: var(--neon-green);" id="kpi-success">0%</div>
         <div class="kpi-sub" id="kpi-failed-count">0 skipped / 0 failed</div>
@@ -1640,7 +1651,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
               <th onclick="sortTable('avg_ttft')">TTFT <span id="sort-avg_ttft" class="sort-indicator"></span></th>
               <th onclick="sortTable('avg_total')">Total Time <span id="sort-avg_total" class="sort-indicator"></span></th>
               <th onclick="sortTable('avg_tps')">Speed <span id="sort-avg_tps" class="sort-indicator"></span></th>
-              <th>Output Preview / Error Note</th>
+              <th>Output Preview / Diagnostic Note</th>
               <th style="text-align: right;">Action</th>
             </tr>
           </thead>
@@ -1723,8 +1734,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     const passCount = passed.length;
     const skipCount = skipped.length;
     const failCount = failed.length;
-    const activeTotal = total - skipCount;
-    const passPct = activeTotal ? Math.round((passCount / activeTotal) * 100) : 0;
+    const passPct = total ? Math.round((passCount / total) * 100) : 0;
 
     document.getElementById('count-all').textContent = total;
     document.getElementById('count-pass').textContent = passCount;
@@ -1732,8 +1742,8 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     document.getElementById('count-fail').textContent = failCount;
 
     document.getElementById('kpi-total').textContent = total;
-    document.getElementById('kpi-pass-rate').textContent = `${passCount} passed, ${skipCount} skipped`;
-    document.getElementById('kpi-success').textContent = `${passPct}% (${passCount}/${activeTotal})`;
+    document.getElementById('kpi-pass-rate').textContent = `${passCount} passed, ${failCount} failed, ${skipCount} skipped`;
+    document.getElementById('kpi-success').textContent = `${passPct}% (${passCount}/${total})`;
     document.getElementById('kpi-failed-count').textContent = `${skipCount} skipped / ${failCount} failed`;
 
     if (total > 0) {
@@ -1974,8 +1984,9 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         if (query) {
           const matchModel = r.model.toLowerCase().includes(query);
           const matchPreview = (r.sample_preview || '').toLowerCase().includes(query);
+          const matchReason = (r.skip_reason || '').toLowerCase().includes(query);
           const matchErr = (r.errors || []).join(' ').toLowerCase().includes(query);
-          if (!matchModel && !matchPreview && !matchErr) return false;
+          if (!matchModel && !matchPreview && !matchReason && !matchErr) return false;
         }
         return true;
       });
@@ -2054,15 +2065,15 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         if (r.status === 'PASS') {
           note = `"${r.sample_preview || ''}"`;
         } else if (r.status === 'SKIPPED') {
-          note = 'Non-available fund / skipped';
+          note = r.skip_reason || (r.errors && r.errors.length ? r.errors.join('; ') : 'Skipped');
         } else {
           note = (r.errors && r.errors.length) ? r.errors.join('; ') : 'Execution failed';
         }
 
         let rankHtml = `<span class="rank-badge rank-other">${idx + 1}</span>`;
-        if (idx === 0) rankHtml = `<span class="rank-badge rank-1">1</span>`;
-        else if (idx === 1) rankHtml = `<span class="rank-badge rank-2">2</span>`;
-        else if (idx === 2) rankHtml = `<span class="rank-badge rank-3">3</span>`;
+        if (idx === 0 && r.status === 'PASS') rankHtml = `<span class="rank-badge rank-1">1</span>`;
+        else if (idx === 1 && r.status === 'PASS') rankHtml = `<span class="rank-badge rank-2">2</span>`;
+        else if (idx === 2 && r.status === 'PASS') rankHtml = `<span class="rank-badge rank-3">3</span>`;
 
         tr.innerHTML = `
           <td><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelectModel('${r.model}', this.checked)" /></td>
@@ -2129,8 +2140,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         const totalStr = r.avg_total !== null ? `${r.avg_total.toFixed(2)} s` : '—';
         const tpsStr = r.avg_tps !== null ? `${r.avg_tps.toFixed(1)} t/s` : '—';
 
-        let preview = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('; ') : 'No output recorded');
-        if (r.status === 'SKIPPED') preview = 'Model evaluation was skipped: Non-available fund.';
+        let preview = r.sample_preview || r.skip_reason || (r.errors && r.errors.length ? r.errors.join('; ') : 'No output recorded');
 
         card.innerHTML = `
           <div>
@@ -2224,7 +2234,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         const totalStr = r.avg_total !== null ? `${r.avg_total.toFixed(3)} s` : '—';
         const tpsStr = r.avg_tps !== null ? `${r.avg_tps.toFixed(1)} tok/s` : '—';
 
-        let preview = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\n') : 'No output recorded');
+        let preview = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\n') : (r.skip_reason || 'No output recorded'));
 
         col.innerHTML = `
           <div class="compare-col-header">
@@ -2251,7 +2261,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
           </div>
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Response Output</span>
+              <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Response Output / Note</span>
               <button class="btn" style="padding: 2px 8px; font-size: 11px;" onclick="copyTextToClipboard('${encodeURIComponent(preview)}')">Copy</button>
             </div>
             <div class="code-box" style="max-height: 200px;">${preview.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
@@ -2278,10 +2288,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       const totalStr = r.avg_total !== null ? `${r.avg_total.toFixed(3)} s` : '—';
       const tpsStr = r.avg_tps !== null ? `${r.avg_tps.toFixed(1)} tok/s` : '—';
 
-      let previewContent = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\n') : 'No output recorded.');
-      if (r.status === 'SKIPPED') {
-        previewContent = 'Model evaluation was skipped: Non-available fund or quota limit.';
-      }
+      let previewContent = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\n') : (r.skip_reason || 'No output recorded.'));
 
       document.getElementById('modalBody').innerHTML = `
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
@@ -2305,8 +2312,8 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
 
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Prompt Response / Diagnostics</span>
-            <button class="btn" style="padding: 3px 9px; font-size: 11.5px;" onclick="copyTextToClipboard('${encodeURIComponent(previewContent)}')">Copy Response</button>
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Prompt Response / Error Diagnostics</span>
+            <button class="btn" style="padding: 3px 9px; font-size: 11.5px;" onclick="copyTextToClipboard('${encodeURIComponent(previewContent)}')">Copy Output</button>
           </div>
           <div class="code-box">${previewContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
         </div>
@@ -2338,12 +2345,12 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     function copyMarkdown() {
       let md = "# LLM Benchmark Results\n\n";
       md += `**Endpoint**: \`${DATA.endpoint || '{ENDPOINT}'}\`\n\n`;
-      md += "| # | Model ID | Status | TTFT | Total Time | Speed | Output Preview |\n|---|---|---|---|---|---|---|\n";
+      md += "| # | Model ID | Status | TTFT | Total Time | Speed | Output Preview / Note |\n|---|---|---|---|---|---|---|\n";
       results.forEach((r, idx) => {
         const ttftStr = r.avg_ttft ? (r.avg_ttft < 1 ? `${Math.round(r.avg_ttft * 1000)} ms` : `${r.avg_ttft.toFixed(3)} s`) : '—';
         const totalStr = r.avg_total ? `${r.avg_total.toFixed(3)} s` : '—';
         const tpsStr = r.avg_tps ? `${r.avg_tps.toFixed(1)} tok/s` : '—';
-        const preview = (r.sample_preview || (r.errors || []).join(' ')).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+        const preview = (r.sample_preview || r.skip_reason || (r.errors || []).join(' ')).replace(/\|/g, '\\|').replace(/\n/g, ' ');
         md += `| ${idx + 1} | \`${r.model}\` | ${r.status} | ${ttftStr} | ${totalStr} | ${tpsStr} | ${preview.slice(0, 50)} |\n`;
       });
       navigator.clipboard.writeText(md).then(() => showToast('Markdown table copied'));
@@ -2352,7 +2359,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     function copySummaryCard() {
       let card = `⚡ LLMtest Benchmark Summary (${DATA.endpoint || '{ENDPOINT}'})\n`;
       card += `• Total Models : ${total}\n`;
-      card += `• Active Passed: ${passCount}/${activeTotal} (${passPct}%)\n`;
+      card += `• Passed       : ${passCount}/${total} (${passPct}%)\n`;
       if (document.getElementById('kpi-ttft-model').textContent !== '—') {
         card += `• Fastest TTFT : ${document.getElementById('kpi-ttft').textContent} (${document.getElementById('kpi-ttft-model').textContent})\n`;
       }
@@ -2365,7 +2372,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     function downloadCSV() {
       let csv = "Model ID,Status,Success Runs,Total Runs,Avg TTFT (s),Avg Total Time (s),Avg Speed (tok/s),Preview / Note\n";
       results.forEach(r => {
-        const note = (r.sample_preview || (r.errors || []).join(' ')).replace(/"/g, '""');
+        const note = (r.sample_preview || r.skip_reason || (r.errors || []).join(' ')).replace(/"/g, '""');
         csv += `"${r.model}","${r.status}",${r.success},${r.runs},${r.avg_ttft || ''},${r.avg_total || ''},${r.avg_tps || ''},"${note}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
