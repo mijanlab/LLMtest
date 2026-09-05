@@ -606,7 +606,7 @@ def export_csv_report(results, filepath: str, endpoint: str):
     print(f" {CLR_GREEN}✔{CLR_RESET} CSV report      : {CLR_CYAN}{os.path.abspath(filepath)}{CLR_RESET}")
 
 
-HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
+HTML_REPORT_TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
@@ -2247,7 +2247,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         const totalStr = r.avg_total !== null ? `${r.avg_total.toFixed(3)} s` : '—';
         const tpsStr = r.avg_tps !== null ? `${r.avg_tps.toFixed(1)} tok/s` : '—';
 
-        let preview = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\n') : (r.skip_reason || 'No output recorded'));
+        let preview = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('; ') : (r.skip_reason || 'No output recorded'));
 
         col.innerHTML = `
           <div class="compare-col-header">
@@ -2301,7 +2301,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       const totalStr = r.avg_total !== null ? `${r.avg_total.toFixed(3)} s` : '—';
       const tpsStr = r.avg_tps !== null ? `${r.avg_tps.toFixed(1)} tok/s` : '—';
 
-      let previewContent = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\n') : (r.skip_reason || 'No output recorded.'));
+      let previewContent = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('; ') : (r.skip_reason || 'No output recorded.'));
 
       document.getElementById('modalBody').innerHTML = `
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
@@ -2356,7 +2356,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
 
     function copyMarkdown() {
-      let md = "# LLM Benchmark Results\n\n";
+      let md = `# LLM Benchmark Results\n\n`;
       md += `**Endpoint**: \`${DATA.endpoint || '{ENDPOINT}'}\`\n\n`;
       md += "| # | Model ID | Status | TTFT | Total Time | Speed | Output Preview / Note |\n|---|---|---|---|---|---|---|\n";
       results.forEach((r, idx) => {
@@ -2383,7 +2383,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
 
     function downloadCSV() {
-      let csv = "Model ID,Status,Success Runs,Total Runs,Avg TTFT (s),Avg Total Time (s),Avg Speed (tok/s),Preview / Note\n";
+      let csv = `Model ID,Status,Success Runs,Total Runs,Avg TTFT (s),Avg Total Time (s),Avg Speed (tok/s),Preview / Note\n`;
       results.forEach(r => {
         const note = (r.sample_preview || r.skip_reason || (r.errors || []).join(' ')).replace(/"/g, '""');
         csv += `"${r.model}","${r.status}",${r.success},${r.runs},${r.avg_ttft || ''},${r.avg_total || ''},${r.avg_tps || ''},"${note}"\n`;
