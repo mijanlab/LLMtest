@@ -145,9 +145,43 @@ def estimate_tokens(text: str) -> int:
     """
     if not text:
         return 0
-    # Matches words, contractions, numbers, individual symbols, and punctuation
     tokens = re.findall(r"[\w']+|[^\w\s]", text, re.UNICODE)
     return max(1, len(tokens))
+
+
+def is_skippable_error(err_str: str):
+    """
+    Categorizes errors due to external account constraints (quota, funds, rate-limits, access restrictions)
+    rather than model execution failures. Returns (is_skippable: bool, reason: str).
+    """
+    err_lower = (err_str or "").lower()
+    
+    # 1. No Funds / Quota
+    fund_indicators = [
+        "402", "payment required", "insufficient_quota", "insufficient_funds",
+        "insufficient funds", "insufficient credit", "out of credits", "out of credit",
+        "no credit", "no credits", "balance is zero", "exceeded your current quota",
+        "quota exceeded", "billing", "credits required", "unpaid", "fund"
+    ]
+    if any(ind in err_lower for ind in fund_indicators):
+        return True, "Non-available fund / insufficient credits"
+
+    # 2. Rate Limits (429)
+    rate_indicators = ["429", "rate limit", "too many requests", "rate_limit", "throttled", "quota_exceeded"]
+    if any(ind in err_lower for ind in rate_indicators):
+        return True, "Rate limit exceeded (provider throttled)"
+
+    # 3. Provider Access / Moderation / Region (403)
+    access_indicators = ["403", "forbidden", "permission_denied", "access denied", "not allowed", "restricted", "region"]
+    if any(ind in err_lower for ind in access_indicators):
+        return True, "Provider restricted / access denied"
+
+    # 4. Non-chat / Modality mismatch
+    non_chat_indicators = ["not a chat model", "unsupported model", "invalid model", "does not support chat", "not found"]
+    if any(ind in err_lower for ind in non_chat_indicators):
+        return True, "Unsupported model modality"
+
+    return False, ""
 
 
 def test_single_model_streaming(chat_url: str, model_id: str, api_key: str, prompt: str, system_prompt: str, max_tokens: int, timeout: int):
@@ -173,81 +207,93 @@ def test_single_model_streaming(chat_url: str, model_id: str, api_key: str, prom
         "max_tokens": max_tokens
     }
 
-    start = time.perf_counter()
-    first = None
-    last = None
-    chunks = 0
-    accumulated_text = []
-    usage_info = {}
+    max_retries = 2
+    for attempt in range(max_retries + 1):
+        start = time.perf_counter()
+        first = None
+        last = None
+        chunks = 0
+        accumulated_text = []
+        usage_info = {}
 
-    def parse_sse_line(raw: str):
-        nonlocal first, last, chunks, usage_info
-        if not raw or not raw.startswith("data:"):
-            return None
-        data = raw[5:].strip()
-        if data == "[DONE]":
-            return None
-        try:
-            obj = json.loads(data)
-        except Exception:
-            return None
-
-        if isinstance(obj, dict) and "error" in obj:
-            err_obj = obj["error"]
-            err_msg = err_obj.get("message") if isinstance(err_obj, dict) else str(err_obj)
-            return f"Stream Error: {err_msg}"
-
-        if isinstance(obj, dict) and obj.get("usage"):
-            usage_info = obj["usage"]
-
-        choices = obj.get("choices") or []
-        if choices:
-            choice = choices[0]
-            delta = choice.get("delta") or {}
-            text_piece = (
-                delta.get("content")
-                or delta.get("reasoning")
-                or delta.get("reasoning_content")
-                or delta.get("thought")
-                or delta.get("text")
-                or choice.get("text")
-            )
-
-            if not text_piece and choice.get("message"):
-                msg = choice.get("message") or {}
-                text_piece = msg.get("content") or msg.get("reasoning")
-
-            if text_piece is not None and text_piece != "":
-                now = time.perf_counter()
-                if first is None:
-                    first = now
-                last = now
-                chunks += 1
-                accumulated_text.append(str(text_piece))
-        return None
-
-    try:
-        if HAS_REQUESTS:
+        def parse_sse_line(raw: str):
+            nonlocal first, last, chunks, usage_info
+            if not raw or not raw.startswith("data:"):
+                return None
+            data = raw[5:].strip()
+            if data == "[DONE]":
+                return None
             try:
-                r = requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout)
-            except Exception as e:
-                # If stream_options was rejected, retry without it
-                if "stream_options" in payload:
-                    payload.pop("stream_options", None)
-                    r = requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout)
-                else:
-                    raise e
+                obj = json.loads(data)
+            except Exception:
+                return None
 
-            with r:
-                status = r.status_code
-                if status != 200:
-                    # Retry without stream_options if 400 Bad Request
+            if isinstance(obj, dict) and "error" in obj:
+                err_obj = obj["error"]
+                err_msg = err_obj.get("message") if isinstance(err_obj, dict) else str(err_obj)
+                return f"Stream Error: {err_msg}"
+
+            if isinstance(obj, dict) and obj.get("usage"):
+                usage_info = obj["usage"]
+
+            choices = obj.get("choices") or []
+            if choices:
+                choice = choices[0]
+                delta = choice.get("delta") or {}
+                text_piece = (
+                    delta.get("content")
+                    or delta.get("reasoning")
+                    or delta.get("reasoning_content")
+                    or delta.get("thought")
+                    or delta.get("text")
+                    or choice.get("text")
+                )
+
+                if not text_piece and choice.get("message"):
+                    msg = choice.get("message") or {}
+                    text_piece = msg.get("content") or msg.get("reasoning")
+
+                if text_piece is not None and text_piece != "":
+                    now = time.perf_counter()
+                    if first is None:
+                        first = now
+                    last = now
+                    chunks += 1
+                    accumulated_text.append(str(text_piece))
+            return None
+
+        try:
+            if HAS_REQUESTS:
+                try:
+                    r = requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout)
+                except Exception as e:
+                    if "stream_options" in payload:
+                        payload.pop("stream_options", None)
+                        r = requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout)
+                    else:
+                        raise e
+
+                with r:
+                    status = r.status_code
                     if status == 400 and "stream_options" in payload:
                         payload.pop("stream_options", None)
                         retry_r = requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout)
                         if retry_r.status_code == 200:
                             r = retry_r
                             status = 200
+
+                    # Handle 429 / 503 with exponential backoff retry
+                    if (status == 429 or status == 503 or status == 529) and attempt < max_retries:
+                        retry_after = 2.0 * (attempt + 1)
+                        try:
+                            h_val = r.headers.get("Retry-After")
+                            if h_val:
+                                retry_after = max(float(h_val), retry_after)
+                        except Exception:
+                            pass
+                        time.sleep(retry_after)
+                        continue
+
                     if status != 200:
                         try:
                             err_json = r.json()
@@ -261,94 +307,75 @@ def test_single_model_streaming(chat_url: str, model_id: str, api_key: str, prom
                         body = r.text[:150].strip()
                         return {"ok": False, "error": f"HTTP {status}: {body}"}
 
-                for raw in r.iter_lines(decode_unicode=True):
-                    err = parse_sse_line(raw)
-                    if err:
-                        return {"ok": False, "error": err}
-            end = time.perf_counter()
-        else:
-            req = urllib.request.Request(
-                chat_url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers=headers,
-                method="POST"
-            )
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                for line_bytes in resp:
-                    raw = line_bytes.decode("utf-8", errors="ignore").strip()
-                    err = parse_sse_line(raw)
-                    if err:
-                        return {"ok": False, "error": err}
-            end = time.perf_counter()
+                    for raw in r.iter_lines(decode_unicode=True):
+                        err = parse_sse_line(raw)
+                        if err:
+                            return {"ok": False, "error": err}
+                end = time.perf_counter()
+            else:
+                req = urllib.request.Request(
+                    chat_url,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers=headers,
+                    method="POST"
+                )
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    for line_bytes in resp:
+                        raw = line_bytes.decode("utf-8", errors="ignore").strip()
+                        err = parse_sse_line(raw)
+                        if err:
+                            return {"ok": False, "error": err}
+                end = time.perf_counter()
 
-        full_text = "".join(accumulated_text).strip()
-        if first is None:
-            if not full_text:
-                return {"ok": False, "error": "No response text received from model"}
-            first = end
-            last = end
+            full_text = "".join(accumulated_text).strip()
+            if first is None:
+                if not full_text:
+                    if attempt < max_retries:
+                        time.sleep(1.0)
+                        continue
+                    return {"ok": False, "error": "No response text received from model"}
+                first = end
+                last = end
 
-        ttft = first - start
-        total = end - start
-        
-        # Generation time is from first token received until stream completion
-        gen = (end - first) if (end > first) else (last - first if last and last > first else 0.001)
-        if gen <= 0:
-            gen = 0.001
+            ttft = first - start
+            total = end - start
+            
+            gen = (end - first) if (end > first) else (last - first if last and last > first else 0.001)
+            if gen <= 0:
+                gen = 0.001
 
-        # Determine token count: use server-provided usage if present, otherwise regex token estimate
-        completion_tokens = usage_info.get("completion_tokens") if usage_info else None
-        if not completion_tokens or completion_tokens <= 0:
-            completion_tokens = estimate_tokens(full_text)
+            completion_tokens = usage_info.get("completion_tokens") if usage_info else None
+            if not completion_tokens or completion_tokens <= 0:
+                completion_tokens = estimate_tokens(full_text)
 
-        # Calculate exact tokens per second (TPS)
-        if completion_tokens and completion_tokens > 0 and gen > 0:
-            tps = completion_tokens / gen
-        else:
-            tps = None
+            if completion_tokens and completion_tokens > 0 and gen > 0:
+                tps = completion_tokens / gen
+            else:
+                tps = None
 
-        preview = (full_text[:80] + "...") if len(full_text) > 80 else full_text
+            preview = (full_text[:80] + "...") if len(full_text) > 80 else full_text
 
-        return {
-            "ok": True,
-            "ttft": ttft,
-            "total": total,
-            "generation": gen,
-            "chunks": chunks,
-            "tps": tps,
-            "completion_tokens": completion_tokens,
-            "prompt_tokens": usage_info.get("prompt_tokens") if usage_info else None,
-            "total_tokens": usage_info.get("total_tokens") if usage_info else None,
-            "preview": preview,
-            "full_text": full_text
-        }
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
+            return {
+                "ok": True,
+                "ttft": ttft,
+                "total": total,
+                "generation": gen,
+                "chunks": chunks,
+                "tps": tps,
+                "completion_tokens": completion_tokens,
+                "prompt_tokens": usage_info.get("prompt_tokens") if usage_info else None,
+                "total_tokens": usage_info.get("total_tokens") if usage_info else None,
+                "preview": preview,
+                "full_text": full_text
+            }
+        except Exception as e:
+            if attempt < max_retries and ("429" in str(e) or "503" in str(e) or "timeout" in str(e).lower()):
+                time.sleep(2.0 * (attempt + 1))
+                continue
+            return {"ok": False, "error": str(e)}
 
+    return {"ok": False, "error": "Maximum retries exceeded"}
 
-def is_no_fund_error(err_str: str) -> bool:
-    """Checks if an error string indicates insufficient funds, credits, or quota."""
-    err_lower = (err_str or "").lower()
-    indicators = [
-        "402",
-        "payment required",
-        "insufficient_quota",
-        "insufficient_funds",
-        "insufficient funds",
-        "insufficient credit",
-        "out of credits",
-        "out of credit",
-        "no credit",
-        "no credits",
-        "balance is zero",
-        "exceeded your current quota",
-        "quota exceeded",
-        "billing",
-        "credits required",
-        "unpaid",
-        "fund"
-    ]
-    return any(ind in err_lower for ind in indicators)
 
 def benchmark_model(chat_url: str, model_id: str, api_key: str, prompt: str, system_prompt: str, max_tokens: int, timeout: int, runs: int):
     run_results = []
@@ -365,19 +392,27 @@ def benchmark_model(chat_url: str, model_id: str, api_key: str, prompt: str, sys
     errors = list({r.get("error") for r in run_results if not r.get("ok") and r.get("error")})
     sample_preview = next((r.get("preview") for r in good if r.get("preview")), None)
 
-    # Detect if failure was purely due to missing funds/credits
-    if not good and errors and all(is_no_fund_error(e) for e in errors):
-        status = "SKIPPED"
-        skip_reason = "Non-available fund (skipped)"
-    elif len(good) == runs:
+    # Detect if failure was due to skippable constraint (funds, rate limits, access restriction)
+    status = "FAIL"
+    skip_reason = None
+
+    if len(good) == runs:
         status = "PASS"
-        skip_reason = None
     elif len(good) > 0:
         status = "PARTIAL"
-        skip_reason = None
-    else:
-        status = "FAIL"
-        skip_reason = None
+    elif errors:
+        all_skippable = True
+        reasons = []
+        for e in errors:
+            is_skip, reason = is_skippable_error(e)
+            if is_skip:
+                reasons.append(reason)
+            else:
+                all_skippable = False
+                break
+        if all_skippable and reasons:
+            status = "SKIPPED"
+            skip_reason = reasons[0]
 
     return {
         "model": model_id,
@@ -393,6 +428,7 @@ def benchmark_model(chat_url: str, model_id: str, api_key: str, prompt: str, sys
         "errors": errors,
         "details": run_results
     }
+
 
 def print_table(results):
     """
@@ -2610,7 +2646,7 @@ def main():
     parser.add_argument("pos_filter", nargs="?", default="", help="Model filter keyword (e.g. 'free', 'flash')")
 
     # Version flag
-    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.4", help="Show version number and exit")
+    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.5", help="Show version number and exit")
 
     # Management flags
     parser.add_argument("--update", action="store_true", help="Update llmtest to the latest version from GitHub")

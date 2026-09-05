@@ -4,7 +4,7 @@
 
 **Ultra-fast, zero-dependency streaming latency & throughput benchmark for OpenAI-compatible LLM endpoints.**
 
-[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.4-09090b?style=flat-square&logo=pypi&logoColor=white&labelColor=27272a)](https://github.com/mijanlab/LLMtest)
+[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.5-09090b?style=flat-square&logo=pypi&logoColor=white&labelColor=27272a)](https://github.com/mijanlab/LLMtest)
 [![Python Version](https://img.shields.io/badge/python-3.10+-09090b?style=flat-square&logo=python&logoColor=white&labelColor=27272a)](https://python.org)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-09090b?style=flat-square&labelColor=27272a)](https://github.com/mijanlab/LLMtest)
 [![License](https://img.shields.io/badge/license-MIT-09090b?style=flat-square&labelColor=27272a)](LICENSE)
@@ -18,7 +18,7 @@
 <br />
 
 ```text
-  ⚡ LLM Speed & Latency Benchmark (v1.0.4)
+  ⚡ LLM Speed & Latency Benchmark (v1.0.5)
   ═══════════════════════════════════════════════════════════════════════════════════
   Endpoint : https://api.openai.com/v1
   Models   : 8 discovered | Concurrency: 1 | Prompt: 4 tokens ("Say hello in 5 words")
