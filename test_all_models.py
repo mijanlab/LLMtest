@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import json
+import shutil
 import argparse
 import subprocess
 import statistics
@@ -1178,20 +1179,84 @@ def export_html_report(results, filepath: str, endpoint: str):
     file_uri = f"file:///{abs_path.replace(os.sep, '/')}"
     print(f" {CLR_GREEN}✔{CLR_RESET} Interactive Web UI report : {CLR_CYAN}{file_uri}{CLR_RESET} {CLR_GRAY}(Ctrl+Click to view){CLR_RESET}")
 
+def is_pipx_environment():
+    """Detects if running inside a pipx-managed environment."""
+    prefix_lower = sys.prefix.lower()
+    exec_lower = sys.executable.lower()
+    return "pipx" in prefix_lower or "pipx" in exec_lower
+
 def handle_update():
-    """Updates llmtest to the latest version from GitHub."""
+    """Updates llmtest to the latest version from GitHub across pipx, pip, and pip3."""
     print(f"\n{CLR_BOLD}⚡ Updating llmtest to the latest version from GitHub...{CLR_RESET}")
-    cmd = [sys.executable, "-m", "pip", "install", "--upgrade", "--no-cache-dir", "git+https://github.com/mijanlab/LLMtest.git"]
-    try:
-        subprocess.run(cmd, check=True)
+    repo_url = "git+https://github.com/mijanlab/LLMtest.git"
+    success = False
+    error_msgs = []
+
+    # 1. If running under pipx or pipx is present
+    if is_pipx_environment() and shutil.which("pipx"):
+        cmd = ["pipx", "install", "--force", repo_url]
+        try:
+            res = subprocess.run(cmd)
+            if res.returncode == 0:
+                success = True
+        except Exception as e:
+            error_msgs.append(f"pipx error: {e}")
+
+    # 2. Try sys.executable -m pip if not succeeded
+    if not success:
+        cmd = [sys.executable, "-m", "pip", "install", "--upgrade", "--no-cache-dir", repo_url]
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            if res.returncode == 0:
+                success = True
+            else:
+                err_text = (res.stderr.strip() or res.stdout.strip())
+                if err_text:
+                    error_msgs.append(err_text)
+        except Exception as e:
+            error_msgs.append(str(e))
+
+    # 3. Try global pip3 / pip as fallback if still not succeeded
+    if not success:
+        for pip_cmd_name in ["pip3", "pip"]:
+            pip_bin = shutil.which(pip_cmd_name)
+            if pip_bin:
+                cmd = [pip_bin, "install", "--upgrade", "--no-cache-dir", repo_url]
+                try:
+                    res = subprocess.run(cmd, capture_output=True, text=True)
+                    if res.returncode == 0:
+                        success = True
+                        break
+                    else:
+                        err_text = (res.stderr.strip() or res.stdout.strip())
+                        if err_text:
+                            error_msgs.append(err_text)
+                except Exception as e:
+                    error_msgs.append(str(e))
+
+    # 4. Try pipx as general fallback if available
+    if not success and shutil.which("pipx"):
+        cmd = ["pipx", "install", "--force", repo_url]
+        try:
+            res = subprocess.run(cmd)
+            if res.returncode == 0:
+                success = True
+        except Exception as e:
+            error_msgs.append(str(e))
+
+    if success:
         print(f"\n {CLR_GREEN}✔{CLR_RESET} {CLR_BOLD}llmtest successfully updated!{CLR_RESET}\n")
-    except Exception as e:
-        print(f"\n {CLR_RED}✖ Update failed:{CLR_RESET} {e}")
-        print(f" {CLR_GRAY}Try running manually:{CLR_RESET} {CLR_CYAN}pip install --upgrade git+https://github.com/mijanlab/LLMtest.git{CLR_RESET}\n")
+    else:
+        print(f"\n {CLR_RED}✖ Update failed.{CLR_RESET}")
+        if error_msgs:
+            print(f" {CLR_GRAY}Details:{CLR_RESET} {error_msgs[-1]}")
+        print(f"\n {CLR_GRAY}Try updating manually:{CLR_RESET}")
+        print(f"   {CLR_CYAN}pipx install --force {repo_url}{CLR_RESET}   (for pipx)")
+        print(f"   {CLR_CYAN}pip3 install --upgrade {repo_url}{CLR_RESET}  (for pip3)\n")
     sys.exit(0)
 
 def handle_uninstall():
-    """Uninstalls llmtest from the current Python environment."""
+    """Uninstalls llmtest from the current environment (pipx / pip / pip3)."""
     print(f"\n{CLR_YELLOW}⚠ You are about to uninstall llmtest.{CLR_RESET}")
     try:
         confirm = input(" Are you sure you want to proceed? (y/N): ").strip().lower()
@@ -1199,16 +1264,63 @@ def handle_uninstall():
         print(f"\n{CLR_GRAY}Cancelled.{CLR_RESET}\n")
         sys.exit(0)
 
-    if confirm in ["y", "yes"]:
+    if confirm not in ["y", "yes"]:
+        print(f"\n{CLR_GRAY}Uninstallation cancelled.{CLR_RESET}\n")
+        sys.exit(0)
+
+    success = False
+
+    # 1. If running under pipx
+    if is_pipx_environment() and shutil.which("pipx"):
+        cmd = ["pipx", "uninstall", "llmtest"]
+        try:
+            res = subprocess.run(cmd)
+            if res.returncode == 0:
+                success = True
+        except Exception:
+            pass
+
+    # 2. Try sys.executable -m pip
+    if not success:
         cmd = [sys.executable, "-m", "pip", "uninstall", "-y", "llmtest"]
         try:
-            subprocess.run(cmd, check=True)
-            print(f"\n {CLR_GREEN}✔{CLR_RESET} {CLR_BOLD}llmtest has been successfully uninstalled.{CLR_RESET}\n")
-        except Exception as e:
-            print(f"\n {CLR_RED}✖ Uninstall failed:{CLR_RESET} {e}")
-            print(f" {CLR_GRAY}Try running manually:{CLR_RESET} {CLR_CYAN}pip uninstall llmtest{CLR_RESET}\n")
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            if res.returncode == 0:
+                success = True
+        except Exception:
+            pass
+
+    # 3. Try global pip3 / pip
+    if not success:
+        for pip_cmd_name in ["pip3", "pip"]:
+            pip_bin = shutil.which(pip_cmd_name)
+            if pip_bin:
+                cmd = [pip_bin, "uninstall", "-y", "llmtest"]
+                try:
+                    res = subprocess.run(cmd, capture_output=True, text=True)
+                    if res.returncode == 0:
+                        success = True
+                        break
+                except Exception:
+                    pass
+
+    # 4. Try pipx general fallback
+    if not success and shutil.which("pipx"):
+        cmd = ["pipx", "uninstall", "llmtest"]
+        try:
+            res = subprocess.run(cmd)
+            if res.returncode == 0:
+                success = True
+        except Exception:
+            pass
+
+    if success:
+        print(f"\n {CLR_GREEN}✔{CLR_RESET} {CLR_BOLD}llmtest has been successfully uninstalled.{CLR_RESET}\n")
     else:
-        print(f"\n{CLR_GRAY}Uninstallation cancelled.{CLR_RESET}\n")
+        print(f"\n {CLR_RED}✖ Uninstall failed.{CLR_RESET}")
+        print(f" {CLR_GRAY}Try running manually:{CLR_RESET}")
+        print(f"   {CLR_CYAN}pipx uninstall llmtest{CLR_RESET} (if installed via pipx)")
+        print(f"   {CLR_CYAN}pip3 uninstall llmtest{CLR_RESET} (if installed via pip3)\n")
     sys.exit(0)
 
 def prompt_wizard():
