@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llmtest"
+version = "1.0.0"
+description = "Ultra-fast CLI tool for benchmarking LLM latency, TTFT, and throughput"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    { name = "Mijanur Rahman", email = "hello@mijanpro.com" }
+]
+dependencies = [
+    "requests>=2.28.0"
+]
+
+[project.scripts]
+llmtest = "llmtest.cli:main"
+llm-test = "llmtest.cli:main"
+

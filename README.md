@@ -1,0 +1,169 @@
+<div align="center">
+
+# `llmtest`
+
+**Ultra-fast, zero-dependency streaming latency & throughput benchmark for OpenAI-compatible LLM endpoints.**
+
+[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-09090b?style=flat-square&logo=pypi&logoColor=white&labelColor=27272a)](https://github.com/mijanlab/LLMtest)
+[![Python Version](https://img.shields.io/badge/python-3.10+-09090b?style=flat-square&logo=python&logoColor=white&labelColor=27272a)](https://python.org)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-09090b?style=flat-square&labelColor=27272a)](https://github.com/mijanlab/LLMtest)
+[![License](https://img.shields.io/badge/license-MIT-09090b?style=flat-square&labelColor=27272a)](LICENSE)
+
+<br />
+
+[Quickstart](#quickstart) • [One-Line Run](#one-line-run-no-install) • [CLI Usage](#cli-usage) • [Interactive Web Report](#interactive-web-report) • [Metrics](#metrics-measured) • [Security](#security)
+
+</div>
+
+<br />
+
+```text
+  ⚡ LLM Speed & Latency Benchmark (v1.0.0)
+  ═══════════════════════════════════════════════════════════════════════════════════
+  Endpoint : https://lab.proclfy.link/v1
+  Models   : 8 discovered | Concurrency: 1 | Prompt: 4 tokens ("Say hello in 5 words")
+  ═══════════════════════════════════════════════════════════════════════════════════
+
+  #  │ Model ID                  │ Status    │ TTFT     │ Total Time │ Throughput │ Output Preview
+  ───┼───────────────────────────┼───────────┼──────────┼────────────┼────────────┼───────────────────────────────
+  1  │ gpt-oss-120b-medium       │ 🟢 1/1 OK │ 1.842 s  │ 2.451 s    │ 24.5 tok/s │ "Hello! Nice to meet you."
+  2  │ gemini-3.7-flash-low      │ 🟢 1/1 OK │ 0.412 s  │ 0.890 s    │ 48.2 tok/s │ "Hello! How can I assist?"
+  3  │ gemini-3.8-flash-medium   │ 🟢 1/1 OK │ 0.380 s  │ 0.760 s    │ 56.1 tok/s │ "Greetings! Hope you are well."
+  4  │ deepseek-r1-distill-70b   │ 🟢 1/1 OK │ 2.105 s  │ 3.920 s    │ 18.2 tok/s │ "Hello there! Ready to help."
+  ───┴───────────────────────────┴───────────┴──────────┴────────────┴────────────┴───────────────────────────────
+  ✨ Completed 4/4 benchmark runs in 8.02s
+
+  📁 Exported Reports:
+  ✔ Interactive Web UI report : file:///C:/Users/.../benchmark_report.html (Ctrl+Click to view)
+  ✔ Markdown report          : file:///C:/Users/.../benchmark_report.md
+  ✔ JSON report              : file:///C:/Users/.../benchmark_report.json
+```
+
+---
+
+## Quickstart
+
+Install globally once, then run from any terminal:
+
+```bash
+pip install git+https://github.com/mijanlab/LLMtest.git
+```
+
+Launch the interactive prompt:
+
+```bash
+llmtest
+```
+
+> [!TIP]
+> The interactive prompt automatically queries `/models`, lets you optionally filter by keyword (e.g. `flash`, `free`, `gpt`), streams real-time latency stats, and generates a clickable interactive Web UI report!
+
+---
+
+## One-Line Run (No Install)
+
+Run benchmarks directly in any terminal without cloning or saving files:
+
+### macOS / Linux / Git Bash
+```bash
+# Interactive mode
+curl -sSL https://raw.githubusercontent.com/mijanlab/LLMtest/main/test_all_models.py | python3
+
+# Or with arguments directly
+curl -sSL https://raw.githubusercontent.com/mijanlab/LLMtest/main/test_all_models.py | python3 - https://api.openai.com/v1 <your_api_key>
+```
+
+### Windows (PowerShell)
+```powershell
+# Interactive mode
+irm https://raw.githubusercontent.com/mijanlab/LLMtest/main/test_all_models.py | py -
+
+# Or with arguments directly
+irm https://raw.githubusercontent.com/mijanlab/LLMtest/main/test_all_models.py | py - https://api.openai.com/v1 <your_api_key>
+```
+
+---
+
+## CLI Usage
+
+Pass arguments directly for CI/CD pipelines, scripted benchmarks, or fast terminal evaluations:
+
+```bash
+# Syntax: llmtest <endpoint | update | uninstall> [api_key] [model_filter] [concurrency]
+
+# Benchmark all models
+llmtest https://api.openai.com/v1 sk-...
+
+# Filter specific models (e.g., only 'flash' or 'gpt-4o')
+llmtest https://lab.proclfy.link/v1 sk-... flash
+
+# Free models on OpenRouter
+llmtest https://openrouter.ai/api/v1 sk-... free
+
+# Automatically open Web UI report in browser when finished
+llmtest https://lab.proclfy.link/v1 sk-... --open
+
+# Update llmtest to the latest version
+llmtest update
+
+# Uninstall llmtest
+llmtest uninstall
+```
+
+### Options & Flags
+
+| Argument | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `endpoint` | `string` | *(prompted)* | Base URL for OpenAI-compatible API (e.g. `https://api.openai.com/v1`) |
+| `update` | `command` | — | Upgrade `llmtest` directly to the latest GitHub release |
+| `uninstall` | `command` | — | Cleanly remove `llmtest` from your Python environment |
+| `api_key` | `string` | *(prompted)* | Bearer authentication key (optional for local/unauthenticated endpoints) |
+| `filter` | `string` | `""` | Substring match to filter model IDs (e.g. `claude`, `llama3`, `deepseek`) |
+| `concurrency` | `int` | `3` | Number of concurrent requests to execute in parallel |
+| `--prompt` | `string` | `"Say hello in 5 words"` | Custom evaluation prompt string |
+| `--runs` | `int` | `1` | Number of test repetitions per model |
+| `--timeout` | `float` | `35.0` | HTTP request timeout in seconds |
+| `--open` | `flag` | `False` | Automatically open interactive HTML report in default browser |
+| `--output-html` | `string` | `"benchmark_report.html"` | Interactive HTML report destination |
+| `--output-md` | `string` | `"benchmark_report.md"` | Markdown table report destination |
+| `--output-json` | `string` | `"benchmark_report.json"` | Raw JSON report destination |
+
+---
+
+## Interactive Web Report
+
+Every benchmark run generates a self-contained, standalone **`benchmark_report.html`** dashboard that requires zero backend servers:
+
+* **Dark Mode UI**: Clean shadcn/ui-inspired dashboard.
+* **Clickable Terminal URL**: Direct `file:///` link in the terminal with Ctrl+Click support.
+* **Instant Search & Sort**: Filter by model name, status (Passed/Failed), and sort columns by TTFT, throughput, or total latency.
+* **Visual Latency Bars**: Comparative visual progress bars for each model.
+* **Token Inspection Modal**: Click on any model row to inspect the full generation output, response text, and token details.
+* **1-Click Export**: Copy formatted markdown table or export JSON directly from the web report.
+
+---
+
+## Metrics Measured
+
+| Metric | Measurement Method | Target Objective |
+| :--- | :--- | :--- |
+| **TTFT** | Request start $\rightarrow$ first streamed chunk byte | Measures initial perceived latency in UI / Chat |
+| **Total Latency** | Wall-clock time from connection $\rightarrow$ stream close | Measures end-to-end task completion time |
+| **Throughput** | Completed output tokens $\div$ generation time | Generation speed in `tokens/sec` |
+| **Chunks/sec** | Streamed chunks $\div$ generation time | Measures stream buffer fragmentation |
+| **Success Rate** | HTTP 200 + non-empty stream completion $\div$ total attempts | Identifies rate limits (429), timeouts, and 500s |
+
+---
+
+## Security
+
+* **Zero Key Persistence**: API keys are held purely in volatile memory during benchmark runs. No credentials or requests are ever logged to disk or external servers.
+* **Pure Standard Library Core**: Core benchmarking utilities use Python's native `urllib.request` and `asyncio`, eliminating third-party supply-chain footprint.
+* **Self-Contained Offline Reports**: The generated HTML report has zero external CDN tracking and runs 100% offline.
+
+---
+
+<div align="center">
+  <sub>Built with precision by <a href="https://github.com/mijanlab">@mijanlab</a> • Distributed under the MIT License</sub>
+</div>
+

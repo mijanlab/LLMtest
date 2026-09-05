@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.benchmark_config.json
+graphify-out/
+benchmark_report.*
+*.html
+
