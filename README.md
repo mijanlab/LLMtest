@@ -43,13 +43,19 @@
 
 ## Quickstart
 
-Install globally once, then run from any terminal:
+Install globally once in your terminal:
 
 ```bash
+# macOS / Linux
+pip3 install git+https://github.com/mijanlab/LLMtest.git
+# or with pipx (recommended for Homebrew / isolated CLI)
+pipx install git+https://github.com/mijanlab/LLMtest.git
+
+# Windows
 pip install git+https://github.com/mijanlab/LLMtest.git
 ```
 
-Launch the interactive prompt:
+Launch the interactive prompt from anywhere:
 
 ```bash
 llmtest
