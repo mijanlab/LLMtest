@@ -20,7 +20,7 @@
 ```text
   ⚡ LLM Speed & Latency Benchmark (v1.0.2)
   ═══════════════════════════════════════════════════════════════════════════════════
-  Endpoint : https://lab.proclfy.link/v1
+  Endpoint : https://api.openai.com/v1
   Models   : 8 discovered | Concurrency: 1 | Prompt: 4 tokens ("Say hello in 5 words")
   ═══════════════════════════════════════════════════════════════════════════════════
 
@@ -101,13 +101,13 @@ Pass arguments directly for CI/CD pipelines, scripted benchmarks, or fast termin
 llmtest https://api.openai.com/v1 sk-...
 
 # Filter specific models (e.g., only 'flash' or 'gpt-4o')
-llmtest https://lab.proclfy.link/v1 sk-... flash
+llmtest https://api.openai.com/v1 sk-... flash
 
 # Free models on OpenRouter
 llmtest https://openrouter.ai/api/v1 sk-... free
 
 # Automatically open Web UI report in browser when finished
-llmtest https://lab.proclfy.link/v1 sk-... --open
+llmtest https://api.openai.com/v1 sk-... --open
 
 # Update llmtest to the latest version
 llmtest update

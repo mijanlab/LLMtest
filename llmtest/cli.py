@@ -150,7 +150,7 @@ def prompt_wizard():
     # Step 1: Endpoint
     while True:
         try:
-            ep_input = input(f"{CLR_BOLD}1. API Endpoint URL{CLR_RESET} (e.g. https://lab.proclfy.link/v1): ").strip()
+            ep_input = input(f"{CLR_BOLD}1. API Endpoint URL{CLR_RESET} (e.g. https://api.openai.com/v1): ").strip()
         except (KeyboardInterrupt, EOFError):
             print("\nExiting.")
             sys.exit(0)
