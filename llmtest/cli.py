@@ -248,6 +248,9 @@ def main():
     parser.add_argument("pos_key", nargs="?", default="", help="API Key (optional)")
     parser.add_argument("pos_filter", nargs="?", default="", help="Model filter keyword (e.g. 'free', 'flash')")
 
+    # Version flag
+    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.1", help="Show version number and exit")
+
     # Management flags
     parser.add_argument("--update", action="store_true", help="Update llmtest to the latest version from GitHub")
     parser.add_argument("--uninstall", action="store_true", help="Uninstall llmtest from your Python environment")
