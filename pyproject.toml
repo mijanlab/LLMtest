@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmtest"
-version = "1.0.2"
+version = "1.0.3"
 description = "Ultra-fast CLI tool for benchmarking LLM latency, TTFT, and throughput"
 readme = "README.md"
 requires-python = ">=3.8"

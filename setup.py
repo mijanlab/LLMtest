@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='llmtest',
-    version='1.0.2',
+    version='1.0.3',
     description='Ultra-fast CLI tool for benchmarking LLM latency, TTFT, and throughput',
     author='Mijanur Rahman',
     author_email='hello@mijanpro.com',

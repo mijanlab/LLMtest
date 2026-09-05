@@ -251,7 +251,7 @@ def main():
     parser.add_argument("pos_filter", nargs="?", default="", help="Model filter keyword (e.g. 'free', 'flash')")
 
     # Version flag
-    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.2", help="Show version number and exit")
+    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.3", help="Show version number and exit")
 
     # Management flags
     parser.add_argument("--update", action="store_true", help="Update llmtest to the latest version from GitHub")
@@ -280,14 +280,17 @@ def main():
 
     args = parser.parse_args()
 
-    if args.update:
+    if args.update or (args.pos_endpoint and args.pos_endpoint.lower() in ("update", "upgrade", "--update")):
         handle_update()
-    if args.uninstall:
+    if args.uninstall or (args.pos_endpoint and args.pos_endpoint.lower() in ("uninstall", "remove", "--uninstall")):
         handle_uninstall()
 
     # Check if rendering existing report from JSON
     if args.report:
         handle_render_from_json(args.report, args)
+        return
+    if args.pos_endpoint and args.pos_endpoint.lower() in ("report", "render") and args.pos_key:
+        handle_render_from_json(args.pos_key, args)
         return
     if args.pos_endpoint and args.pos_endpoint.endswith(".json") and os.path.exists(args.pos_endpoint):
         handle_render_from_json(args.pos_endpoint, args)
