@@ -251,7 +251,7 @@ def main():
     parser.add_argument("pos_filter", nargs="?", default="", help="Model filter keyword (e.g. 'free', 'flash')")
 
     # Version flag
-    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.3", help="Show version number and exit")
+    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.4", help="Show version number and exit")
 
     # Management flags
     parser.add_argument("--update", action="store_true", help="Update llmtest to the latest version from GitHub")

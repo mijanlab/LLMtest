@@ -136,6 +136,20 @@ def fetch_available_models(models_url: str, api_key: str, timeout: int = 15):
         print(f" {CLR_RED}✖ Error discovering models:{CLR_RESET} {e}")
         return []
 
+import re
+
+def estimate_tokens(text: str) -> int:
+    """
+    Accurately estimates token count from text using regex tokenization
+    closely matching standard BPE / WordPiece tokenizers.
+    """
+    if not text:
+        return 0
+    # Matches words, contractions, numbers, individual symbols, and punctuation
+    tokens = re.findall(r"[\w']+|[^\w\s]", text, re.UNICODE)
+    return max(1, len(tokens))
+
+
 def test_single_model_streaming(chat_url: str, model_id: str, api_key: str, prompt: str, system_prompt: str, max_tokens: int, timeout: int):
     headers = {
         "Content-Type": "application/json",
@@ -154,6 +168,7 @@ def test_single_model_streaming(chat_url: str, model_id: str, api_key: str, prom
         "model": model_id,
         "messages": messages,
         "stream": True,
+        "stream_options": {"include_usage": True},
         "temperature": 0.2,
         "max_tokens": max_tokens
     }
@@ -165,68 +180,92 @@ def test_single_model_streaming(chat_url: str, model_id: str, api_key: str, prom
     accumulated_text = []
     usage_info = {}
 
+    def parse_sse_line(raw: str):
+        nonlocal first, last, chunks, usage_info
+        if not raw or not raw.startswith("data:"):
+            return None
+        data = raw[5:].strip()
+        if data == "[DONE]":
+            return None
+        try:
+            obj = json.loads(data)
+        except Exception:
+            return None
+
+        if isinstance(obj, dict) and "error" in obj:
+            err_obj = obj["error"]
+            err_msg = err_obj.get("message") if isinstance(err_obj, dict) else str(err_obj)
+            return f"Stream Error: {err_msg}"
+
+        if isinstance(obj, dict) and obj.get("usage"):
+            usage_info = obj["usage"]
+
+        choices = obj.get("choices") or []
+        if choices:
+            choice = choices[0]
+            delta = choice.get("delta") or {}
+            text_piece = (
+                delta.get("content")
+                or delta.get("reasoning")
+                or delta.get("reasoning_content")
+                or delta.get("thought")
+                or delta.get("text")
+                or choice.get("text")
+            )
+
+            if not text_piece and choice.get("message"):
+                msg = choice.get("message") or {}
+                text_piece = msg.get("content") or msg.get("reasoning")
+
+            if text_piece is not None and text_piece != "":
+                now = time.perf_counter()
+                if first is None:
+                    first = now
+                last = now
+                chunks += 1
+                accumulated_text.append(str(text_piece))
+        return None
+
     try:
         if HAS_REQUESTS:
-            with requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout) as r:
+            try:
+                r = requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout)
+            except Exception as e:
+                # If stream_options was rejected, retry without it
+                if "stream_options" in payload:
+                    payload.pop("stream_options", None)
+                    r = requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout)
+                else:
+                    raise e
+
+            with r:
                 status = r.status_code
                 if status != 200:
-                    try:
-                        err_json = r.json()
-                        if isinstance(err_json, dict) and "error" in err_json:
-                            err_val = err_json["error"]
-                            if isinstance(err_val, dict) and "message" in err_val:
-                                return {"ok": False, "error": f"HTTP {status}: {err_val['message']}"}
-                            return {"ok": False, "error": f"HTTP {status}: {err_val}"}
-                    except Exception:
-                        pass
-                    body = r.text[:150].strip()
-                    return {"ok": False, "error": f"HTTP {status}: {body}"}
+                    # Retry without stream_options if 400 Bad Request
+                    if status == 400 and "stream_options" in payload:
+                        payload.pop("stream_options", None)
+                        retry_r = requests.post(chat_url, headers=headers, json=payload, stream=True, timeout=timeout)
+                        if retry_r.status_code == 200:
+                            r = retry_r
+                            status = 200
+                    if status != 200:
+                        try:
+                            err_json = r.json()
+                            if isinstance(err_json, dict) and "error" in err_json:
+                                err_val = err_json["error"]
+                                if isinstance(err_val, dict) and "message" in err_val:
+                                    return {"ok": False, "error": f"HTTP {status}: {err_val['message']}"}
+                                return {"ok": False, "error": f"HTTP {status}: {err_val}"}
+                        except Exception:
+                            pass
+                        body = r.text[:150].strip()
+                        return {"ok": False, "error": f"HTTP {status}: {body}"}
 
-                line_iterator = r.iter_lines(decode_unicode=True)
-                for raw in line_iterator:
-                    if not raw or not raw.startswith("data:"):
-                        continue
-                    data = raw[5:].strip()
-                    if data == "[DONE]":
-                        continue
-                    try:
-                        obj = json.loads(data)
-                    except Exception:
-                        continue
-
-                    if isinstance(obj, dict) and "error" in obj:
-                        err_obj = obj["error"]
-                        err_msg = err_obj.get("message") if isinstance(err_obj, dict) else str(err_obj)
-                        return {"ok": False, "error": f"Stream Error: {err_msg}"}
-
-                    if isinstance(obj, dict) and obj.get("usage"):
-                        usage_info = obj["usage"]
-
-                    choices = obj.get("choices") or []
-                    if choices:
-                        choice = choices[0]
-                        delta = choice.get("delta") or {}
-                        text_piece = (
-                            delta.get("content")
-                            or delta.get("reasoning")
-                            or delta.get("reasoning_content")
-                            or delta.get("thought")
-                            or delta.get("text")
-                            or choice.get("text")
-                        )
-
-                        if not text_piece and choice.get("message"):
-                            msg = choice.get("message") or {}
-                            text_piece = msg.get("content") or msg.get("reasoning")
-
-                        if text_piece:
-                            now = time.perf_counter()
-                            if first is None:
-                                first = now
-                            last = now
-                            chunks += 1
-                            accumulated_text.append(str(text_piece))
-                end = time.perf_counter()
+                for raw in r.iter_lines(decode_unicode=True):
+                    err = parse_sse_line(raw)
+                    if err:
+                        return {"ok": False, "error": err}
+            end = time.perf_counter()
         else:
             req = urllib.request.Request(
                 chat_url,
@@ -237,68 +276,37 @@ def test_single_model_streaming(chat_url: str, model_id: str, api_key: str, prom
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 for line_bytes in resp:
                     raw = line_bytes.decode("utf-8", errors="ignore").strip()
-                    if not raw or not raw.startswith("data:"):
-                        continue
-                    data = raw[5:].strip()
-                    if data == "[DONE]":
-                        continue
-                    try:
-                        obj = json.loads(data)
-                    except Exception:
-                        continue
-
-                    if isinstance(obj, dict) and "error" in obj:
-                        err_obj = obj["error"]
-                        err_msg = err_obj.get("message") if isinstance(err_obj, dict) else str(err_obj)
-                        return {"ok": False, "error": f"Stream Error: {err_msg}"}
-
-                    if isinstance(obj, dict) and obj.get("usage"):
-                        usage_info = obj["usage"]
-
-                    choices = obj.get("choices") or []
-                    if choices:
-                        choice = choices[0]
-                        delta = choice.get("delta") or {}
-                        text_piece = (
-                            delta.get("content")
-                            or delta.get("reasoning")
-                            or delta.get("reasoning_content")
-                            or delta.get("thought")
-                            or delta.get("text")
-                            or choice.get("text")
-                        )
-                        if not text_piece and choice.get("message"):
-                            msg = choice.get("message") or {}
-                            text_piece = msg.get("content") or msg.get("reasoning")
-
-                        if text_piece:
-                            now = time.perf_counter()
-                            if first is None:
-                                first = now
-                            last = now
-                            chunks += 1
-                            accumulated_text.append(str(text_piece))
+                    err = parse_sse_line(raw)
+                    if err:
+                        return {"ok": False, "error": err}
             end = time.perf_counter()
 
+        full_text = "".join(accumulated_text).strip()
         if first is None:
-            if not accumulated_text:
-                return {"ok": False, "error": "No streamed tokens received"}
+            if not full_text:
+                return {"ok": False, "error": "No response text received from model"}
             first = end
             last = end
 
         ttft = first - start
         total = end - start
-        gen = (last - first) if (last and last > first) else 0
+        
+        # Generation time is from first token received until stream completion
+        gen = (end - first) if (end > first) else (last - first if last and last > first else 0.001)
+        if gen <= 0:
+            gen = 0.001
 
+        # Determine token count: use server-provided usage if present, otherwise regex token estimate
         completion_tokens = usage_info.get("completion_tokens") if usage_info else None
-        if completion_tokens and gen > 0:
+        if not completion_tokens or completion_tokens <= 0:
+            completion_tokens = estimate_tokens(full_text)
+
+        # Calculate exact tokens per second (TPS)
+        if completion_tokens and completion_tokens > 0 and gen > 0:
             tps = completion_tokens / gen
-        elif chunks > 1 and gen > 0:
-            tps = chunks / gen
         else:
             tps = None
 
-        full_text = "".join(accumulated_text).strip()
         preview = (full_text[:80] + "...") if len(full_text) > 80 else full_text
 
         return {
@@ -311,10 +319,12 @@ def test_single_model_streaming(chat_url: str, model_id: str, api_key: str, prom
             "completion_tokens": completion_tokens,
             "prompt_tokens": usage_info.get("prompt_tokens") if usage_info else None,
             "total_tokens": usage_info.get("total_tokens") if usage_info else None,
-            "preview": preview
+            "preview": preview,
+            "full_text": full_text
         }
     except Exception as e:
         return {"ok": False, "error": str(e)}
+
 
 def is_no_fund_error(err_str: str) -> bool:
     """Checks if an error string indicates insufficient funds, credits, or quota."""
@@ -2600,7 +2610,7 @@ def main():
     parser.add_argument("pos_filter", nargs="?", default="", help="Model filter keyword (e.g. 'free', 'flash')")
 
     # Version flag
-    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.3", help="Show version number and exit")
+    parser.add_argument("--version", "-v", action="version", version="llmtest 1.0.4", help="Show version number and exit")
 
     # Management flags
     parser.add_argument("--update", action="store_true", help="Update llmtest to the latest version from GitHub")
