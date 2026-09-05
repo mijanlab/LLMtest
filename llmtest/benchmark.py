@@ -541,38 +541,43 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>⚡ LLM Benchmark Report — {ENDPOINT}</title>
+  <title>⚡ LLMtest Benchmark Report — {ENDPOINT}</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #09090b;
-      --card: #0e0e12;
-      --card-muted: #14141a;
-      --card-hover: #181822;
-      --border: #23232c;
-      --border-subtle: #1c1c24;
-      --text: #fafafa;
-      --text-muted: #a1a1aa;
-      --text-dim: #71717a;
-      --primary: #fafafa;
-      --primary-fg: #09090b;
+      --bg: #060907;
+      --card: #0b120d;
+      --card-muted: #0f1811;
+      --card-hover: #142218;
+      --border: #1a2d1f;
+      --border-subtle: #122016;
+      --border-glow: rgba(74, 222, 128, 0.3);
+      --text: #f0fdf4;
+      --text-muted: #8ba391;
+      --text-dim: #506556;
+      --primary: #4ade80;
+      --primary-fg: #050806;
+      --neon-green: #4ade80;
+      --neon-glow: 0 0 16px rgba(74, 222, 128, 0.25);
+      --emerald: #4ade80;
       --sky: #38bdf8;
-      --emerald: #10b981;
-      --amber: #f59e0b;
+      --amber: #fbbf24;
       --rose: #f43f5e;
-      --purple: #a855f7;
-      --indigo: #6366f1;
-      --radius: 10px;
+      --radius: 12px;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     }
     body {
       background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 80% 20%, rgba(74, 222, 128, 0.05) 0%, transparent 40%);
+      background-attachment: fixed;
       color: var(--text);
       font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
       line-height: 1.5;
-      padding: 32px 20px 80px;
+      padding: 36px 20px 80px;
       min-height: 100vh;
     }
     .container { max-width: 1320px; margin: 0 auto; }
@@ -582,8 +587,8 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 24px;
-      padding-bottom: 20px;
+      margin-bottom: 26px;
+      padding-bottom: 22px;
       border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
       gap: 16px;
@@ -591,30 +596,37 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     .brand-title {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      font-size: 22px;
-      font-weight: 700;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 800;
       letter-spacing: -0.03em;
-      color: var(--text);
+      color: #ffffff;
+    }
+    .brand-title .brand-accent {
+      color: var(--neon-green);
+      text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
     }
     .brand-icon {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, var(--sky), var(--indigo));
-      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      background: #0f1a12;
+      border: 1px solid var(--neon-green);
+      border-radius: 10px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: #fff;
+      color: var(--neon-green);
+      box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
     }
     .brand-badge {
       font-size: 11px;
       font-weight: 600;
-      padding: 2px 8px;
-      background: #181822;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--sky);
+      padding: 3px 9px;
+      background: rgba(74, 222, 128, 0.08);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      border-radius: 20px;
+      color: var(--neon-green);
+      letter-spacing: 0.02em;
     }
     .header-sub {
       color: var(--text-muted);
@@ -623,25 +635,26 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       align-items: center;
       flex-wrap: wrap;
       gap: 10px;
-      margin-top: 6px;
+      margin-top: 8px;
     }
     .endpoint-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #14141a;
+      background: #0d1510;
       border: 1px solid var(--border);
-      padding: 3px 10px;
-      border-radius: 6px;
+      padding: 4px 11px;
+      border-radius: 20px;
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--sky);
+      color: var(--neon-green);
       cursor: pointer;
       transition: all 0.15s ease;
     }
     .endpoint-pill:hover {
-      background: #1c1c24;
-      border-color: #3f3f4e;
+      background: #142218;
+      border-color: var(--neon-green);
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
     }
     .timestamp-text {
       color: var(--text-dim);
@@ -658,11 +671,11 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #14141a;
+      background: #0d1510;
       color: var(--text);
       border: 1px solid var(--border);
       padding: 7px 13px;
-      border-radius: 8px;
+      border-radius: 20px;
       font-size: 12.5px;
       font-weight: 500;
       cursor: pointer;
@@ -670,21 +683,23 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       user-select: none;
     }
     .btn:hover {
-      background: #23232c;
-      border-color: #3f3f4e;
+      background: #16241a;
+      border-color: rgba(74, 222, 128, 0.4);
       color: #fff;
     }
     .btn:active { transform: scale(0.98); }
     .btn-primary {
-      background: var(--primary);
-      color: var(--primary-fg);
-      border-color: var(--primary);
-      font-weight: 600;
+      background: var(--neon-green);
+      color: #050806;
+      border-color: var(--neon-green);
+      font-weight: 700;
+      box-shadow: 0 0 16px rgba(74, 222, 128, 0.3);
     }
     .btn-primary:hover {
-      background: #e4e4e7;
-      border-color: #e4e4e7;
-      color: #09090b;
+      background: #86efac;
+      border-color: #86efac;
+      color: #050806;
+      box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
     }
 
     /* Bento KPI Grid */
@@ -704,10 +719,11 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       flex-direction: column;
       justify-content: space-between;
       transition: all 0.15s ease;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
     .kpi-card:hover {
-      border-color: #3f3f4e;
+      border-color: rgba(74, 222, 128, 0.35);
+      box-shadow: 0 6px 25px rgba(0,0,0,0.5), 0 0 15px rgba(74, 222, 128, 0.08);
       transform: translateY(-1px);
     }
     .kpi-top {
@@ -724,13 +740,13 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       color: var(--text-dim);
     }
     .kpi-icon {
-      color: var(--text-dim);
+      color: var(--neon-green);
       display: flex;
       align-items: center;
     }
     .kpi-value {
       font-size: 28px;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: -0.03em;
       color: var(--text);
       font-feature-settings: "tnum";
@@ -749,14 +765,14 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
     .kpi-progress {
       height: 4px;
-      background: #1c1c24;
+      background: #121c14;
       border-radius: 2px;
       overflow: hidden;
       margin-top: 10px;
       display: flex;
     }
-    .kpi-prog-pass { background: var(--emerald); }
-    .kpi-prog-skip { background: #52525b; }
+    .kpi-prog-pass { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+    .kpi-prog-skip { background: #405145; }
     .kpi-prog-fail { background: var(--rose); }
 
     /* View Mode Tabs */
@@ -770,9 +786,9 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
     .nav-tabs {
       display: inline-flex;
-      background: #14141a;
+      background: #0d1510;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 20px;
       padding: 3px;
       gap: 2px;
     }
@@ -781,7 +797,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       border: none;
       color: var(--text-muted);
       padding: 6px 14px;
-      border-radius: 6px;
+      border-radius: 16px;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
@@ -793,9 +809,10 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
     .nav-tab:hover { color: var(--text); }
     .nav-tab.active {
-      background: #23232c;
+      background: #17261c;
       color: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
     }
 
     /* Charts Section */
@@ -813,7 +830,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
     .chart-header {
       display: flex;
@@ -823,7 +840,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
     .chart-title {
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text);
       display: flex;
       align-items: center;
@@ -846,16 +863,16 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
     .chart-tooltip {
       position: absolute;
-      background: #181822;
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      background: #0f1811;
+      border: 1px solid var(--neon-green);
+      border-radius: 8px;
       padding: 8px 12px;
       font-size: 12px;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.1s ease;
       z-index: 10;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.7), 0 0 12px rgba(74, 222, 128, 0.2);
     }
 
     /* Leaderboard Bars */
@@ -892,20 +909,21 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     .leader-bar-wrap {
       flex: 1;
       height: 6px;
-      background: #1c1c24;
+      background: #121c14;
       border-radius: 3px;
       overflow: hidden;
     }
     .leader-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--sky), var(--indigo));
+      background: linear-gradient(90deg, #22c55e, #86efac);
       border-radius: 3px;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
       transition: width 0.3s ease;
     }
     .leader-val {
       font-family: var(--font-mono);
       font-size: 11.5px;
-      color: var(--sky);
+      color: var(--neon-green);
       width: 65px;
       text-align: right;
     }
@@ -927,7 +945,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
     .search-icon {
       position: absolute;
-      left: 10px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-dim);
@@ -939,24 +957,24 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       width: 100%;
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 36px 8px 32px;
+      border-radius: 20px;
+      padding: 8px 36px 8px 36px;
       color: var(--text);
-      font-size: 13.5px;
+      font-size: 13px;
       font-family: inherit;
       outline: none;
       transition: all 0.15s ease;
     }
     .search-input:focus {
-      border-color: #71717a;
-      box-shadow: 0 0 0 2px rgba(250, 250, 250, 0.08);
+      border-color: var(--neon-green);
+      box-shadow: 0 0 12px rgba(74, 222, 128, 0.2);
     }
     .search-kbd {
       position: absolute;
-      right: 8px;
+      right: 10px;
       top: 50%;
       transform: translateY(-50%);
-      background: #181822;
+      background: #0f1811;
       border: 1px solid var(--border);
       border-radius: 4px;
       padding: 1px 5px;
@@ -973,10 +991,10 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       flex-wrap: wrap;
     }
     .chip {
-      background: #14141a;
+      background: #0d1510;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 5px 10px;
+      border-radius: 20px;
+      padding: 5px 12px;
       font-size: 12px;
       color: var(--text-muted);
       cursor: pointer;
@@ -986,18 +1004,20 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       align-items: center;
       gap: 4px;
     }
-    .chip:hover { color: var(--text); border-color: #3f3f4e; }
+    .chip:hover { color: var(--text); border-color: rgba(74, 222, 128, 0.35); }
     .chip.active {
-      background: #23232c;
+      background: #17261c;
       color: #fff;
-      border-color: #52525b;
+      border-color: var(--neon-green);
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.15);
     }
     .chip-count {
       font-size: 10.5px;
-      padding: 1px 5px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 8px;
+      padding: 1px 6px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 10px;
       font-family: var(--font-mono);
+      color: var(--neon-green);
     }
 
     /* Table View */
@@ -1006,7 +1026,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.45);
     }
     .table-scroll {
       overflow-x: auto;
@@ -1019,7 +1039,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       font-size: 13.5px;
     }
     thead th {
-      background: #121218;
+      background: #0a110c;
       color: var(--text-muted);
       font-size: 11.5px;
       font-weight: 600;
@@ -1037,14 +1057,14 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       display: inline-block;
       margin-left: 4px;
       font-size: 10px;
-      color: var(--sky);
+      color: var(--neon-green);
     }
     tbody tr {
       border-bottom: 1px solid var(--border-subtle);
       transition: background-color 0.12s ease;
     }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background-color: rgba(35, 35, 44, 0.4); }
+    tbody tr:hover { background-color: rgba(23, 38, 28, 0.45); }
     tbody td {
       padding: 11px 14px;
       vertical-align: middle;
@@ -1055,8 +1075,8 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 2px 7px;
-      border-radius: 5px;
+      padding: 3px 8px;
+      border-radius: 20px;
       font-size: 11.5px;
       font-weight: 600;
       font-family: var(--font-mono);
@@ -1068,11 +1088,11 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       border-radius: 50%;
     }
     .badge-pass {
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--emerald);
-      border: 1px solid rgba(16, 185, 129, 0.22);
+      background: rgba(74, 222, 128, 0.1);
+      color: var(--neon-green);
+      border: 1px solid rgba(74, 222, 128, 0.3);
     }
-    .badge-pass .badge-dot { background: var(--emerald); box-shadow: 0 0 6px var(--emerald); }
+    .badge-pass .badge-dot { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
     .badge-skip {
       background: rgba(113, 113, 122, 0.12);
       color: #a1a1aa;
@@ -1082,13 +1102,13 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     .badge-fail {
       background: rgba(244, 63, 94, 0.1);
       color: var(--rose);
-      border: 1px solid rgba(244, 63, 94, 0.22);
+      border: 1px solid rgba(244, 63, 94, 0.25);
     }
     .badge-fail .badge-dot { background: var(--rose); }
     .badge-par {
       background: rgba(245, 158, 11, 0.1);
       color: var(--amber);
-      border: 1px solid rgba(245, 158, 11, 0.22);
+      border: 1px solid rgba(245, 158, 11, 0.25);
     }
     .badge-par .badge-dot { background: var(--amber); }
 
@@ -1103,7 +1123,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       justify-content: center;
       font-family: var(--font-mono);
     }
-    .rank-1 { background: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.4); }
+    .rank-1 { background: rgba(74, 222, 128, 0.2); color: var(--neon-green); border: 1px solid var(--neon-green); box-shadow: 0 0 8px rgba(74, 222, 128, 0.3); }
     .rank-2 { background: rgba(148, 163, 184, 0.2); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.4); }
     .rank-3 { background: rgba(180, 83, 9, 0.2); color: #d97706; border: 1px solid rgba(180, 83, 9, 0.4); }
     .rank-other { color: var(--text-dim); }
@@ -1113,10 +1133,10 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       font-weight: 500;
       font-size: 12.5px;
       color: var(--text);
-      background: #14141a;
+      background: #0d1510;
       border: 1px solid var(--border);
-      padding: 2px 7px;
-      border-radius: 5px;
+      padding: 3px 8px;
+      border-radius: 6px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -1128,7 +1148,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       align-items: center;
       transition: color 0.15s ease;
     }
-    .copy-mini:hover { color: var(--sky); }
+    .copy-mini:hover { color: var(--neon-green); }
 
     .mono-cell {
       font-family: var(--font-mono);
@@ -1143,13 +1163,13 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
     .meter-bar-bg {
       height: 4px;
-      background: #1c1c24;
+      background: #121c14;
       border-radius: 2px;
       width: 75px;
       overflow: hidden;
     }
-    .meter-bar-fill-ttft { height: 100%; background: var(--sky); border-radius: 2px; }
-    .meter-bar-fill-speed { height: 100%; background: var(--emerald); border-radius: 2px; }
+    .meter-bar-fill-ttft { height: 100%; background: #38bdf8; border-radius: 2px; }
+    .meter-bar-fill-speed { height: 100%; background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green); border-radius: 2px; }
 
     .preview-truncate {
       color: var(--text-muted);
@@ -1178,9 +1198,9 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       position: relative;
     }
     .bento-model-card:hover {
-      border-color: #3f3f4e;
+      border-color: rgba(74, 222, 128, 0.4);
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5), 0 0 15px rgba(74, 222, 128, 0.1);
     }
     .card-head {
       display: flex;
@@ -1193,9 +1213,9 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
       margin-bottom: 12px;
-      background: #14141a;
+      background: #0d1510;
       border: 1px solid var(--border-subtle);
-      border-radius: 6px;
+      border-radius: 8px;
       padding: 8px 10px;
     }
     .card-metric-col {
@@ -1217,9 +1237,9 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     .card-preview-box {
       font-size: 12px;
       color: var(--text-muted);
-      background: #09090b;
+      background: #060907;
       border: 1px solid var(--border-subtle);
-      border-radius: 6px;
+      border-radius: 8px;
       padding: 8px 10px;
       height: 60px;
       overflow: hidden;
@@ -1242,14 +1262,14 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: #181822;
-      border: 1px solid var(--sky);
+      background: #0d1610;
+      border: 1px solid var(--neon-green);
       border-radius: 30px;
       padding: 10px 20px;
       display: flex;
       align-items: center;
       gap: 14px;
-      box-shadow: 0 10px 35px rgba(0,0,0,0.7), 0 0 20px rgba(56, 189, 248, 0.2);
+      box-shadow: 0 10px 35px rgba(0,0,0,0.8), 0 0 20px rgba(74, 222, 128, 0.3);
       z-index: 100;
       transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -1264,8 +1284,8 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -1274,14 +1294,14 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
     .modal-overlay.open { display: flex; }
     .modal-card {
-      background: #0e0e12;
-      border: 1px solid var(--border);
-      border-radius: 14px;
+      background: #0a110c;
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      border-radius: 16px;
       width: 100%;
       max-width: 720px;
       max-height: 88vh;
       overflow-y: auto;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 30px rgba(74, 222, 128, 0.15);
       animation: modalPop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .modal-compare-card {
@@ -1309,7 +1329,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    .modal-close-btn:hover { background: #23232c; color: #fff; }
+    .modal-close-btn:hover { background: #16241a; color: #fff; }
     .modal-body {
       padding: 22px;
       display: flex;
@@ -1317,7 +1337,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       gap: 18px;
     }
     .code-box {
-      background: #09090b;
+      background: #060907;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 14px;
@@ -1338,9 +1358,9 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       gap: 16px;
     }
     .compare-col {
-      background: #14141a;
+      background: #0d1510;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 16px;
       display: flex;
       flex-direction: column;
@@ -1360,17 +1380,17 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: #181822;
-      border: 1px solid var(--border);
+      background: #0d1610;
+      border: 1px solid var(--neon-green);
       color: var(--text);
       padding: 10px 18px;
-      border-radius: 8px;
+      border-radius: 20px;
       font-size: 13px;
       font-weight: 500;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(74, 222, 128, 0.3);
       opacity: 0;
       transform: translateY(10px);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1386,12 +1406,12 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       color: var(--text-dim);
       font-size: 12.5px;
     }
-    .footer a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 3px; }
-    .footer a:hover { color: var(--text); }
+    .footer a { color: var(--neon-green); text-decoration: underline; text-underline-offset: 3px; }
+    .footer a:hover { color: #86efac; }
 
     /* Print Styles */
     @media print {
-      body { background: #fff; color: #000; padding: 0; }
+      body { background: #fff; color: #000; padding: 0; background-image: none; }
       .header-actions, .controls, .compare-float-bar, .modal-overlay, .toast, .nav-tabs { display: none !important; }
       .kpi-card, .table-container, .chart-card { border: 1px solid #ddd; box-shadow: none; }
       table th { background: #f3f4f6; color: #000; }
@@ -1405,9 +1425,11 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     <header class="header">
       <div>
         <div class="brand-title">
-          <span class="brand-icon">⚡</span>
-          <span>LLM Benchmark Report</span>
-          <span class="brand-badge">Interactive Dashboard</span>
+          <span class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"></rect><rect x="10" y="8" width="4" height="12" rx="1"></rect><rect x="17" y="4" width="4" height="16" rx="1"></rect></svg>
+          </span>
+          <span>LLM<span class="brand-accent">test</span></span>
+          <span class="brand-badge">Benchmark Suite</span>
         </div>
         <div class="header-sub">
           <span class="endpoint-pill" onclick="copyEndpoint()" title="Click to copy endpoint URL">
@@ -1432,7 +1454,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         </button>
         <button class="btn btn-primary" onclick="downloadJSON()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
-          JSON
+          Export JSON
         </button>
         <button class="btn" onclick="window.print()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect width="12" height="8" x="6" y="14"></rect></svg>
@@ -1459,27 +1481,27 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       <div class="kpi-card">
         <div class="kpi-top">
           <span class="kpi-label">Fastest First Token</span>
-          <span class="kpi-icon" style="color: var(--sky);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg></span>
+          <span class="kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg></span>
         </div>
-        <div class="kpi-value" style="color: var(--sky);" id="kpi-ttft">—</div>
+        <div class="kpi-value" style="color: var(--neon-green); text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);" id="kpi-ttft">—</div>
         <div class="kpi-sub" id="kpi-ttft-model">—</div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-top">
           <span class="kpi-label">Peak Throughput</span>
-          <span class="kpi-icon" style="color: var(--emerald);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 2-2 2.5V8l2-2.5V2Z"></path><path d="m19 10-2.5-2V5.5L19 8v2Z"></path><circle cx="12" cy="14" r="8"></circle><line x1="12" y1="14" x2="16" y2="10"></line></svg></span>
+          <span class="kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 2-2 2.5V8l2-2.5V2Z"></path><path d="m19 10-2.5-2V5.5L19 8v2Z"></path><circle cx="12" cy="14" r="8"></circle><line x1="12" y1="14" x2="16" y2="10"></line></svg></span>
         </div>
-        <div class="kpi-value" style="color: var(--emerald);" id="kpi-speed">—</div>
+        <div class="kpi-value" style="color: var(--neon-green); text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);" id="kpi-speed">—</div>
         <div class="kpi-sub" id="kpi-speed-model">—</div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-top">
           <span class="kpi-label">Active Pass Rate</span>
-          <span class="kpi-icon" style="color: var(--emerald);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
+          <span class="kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span>
         </div>
-        <div class="kpi-value" style="color: var(--emerald);" id="kpi-success">0%</div>
+        <div class="kpi-value" style="color: var(--neon-green);" id="kpi-success">0%</div>
         <div class="kpi-sub" id="kpi-failed-count">0 skipped / 0 failed</div>
       </div>
     </div>
@@ -1491,7 +1513,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         <div class="chart-header">
           <div>
             <div class="chart-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sky)" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M3 3v18h18"></path></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--neon-green)" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M3 3v18h18"></path></svg>
               Latency vs Throughput Matrix
             </div>
             <div class="chart-sub">Hover points to inspect model performance quadrant</div>
@@ -1508,7 +1530,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         <div class="chart-header">
           <div>
             <div class="chart-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--emerald)" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path><path d="M14 14.66V17c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-2.34"></path></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--neon-green)" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path><path d="M14 14.66V17c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-2.34"></path></svg>
               Speed Leaderboard (Tokens/sec)
             </div>
             <div class="chart-sub">Top fastest streaming models</div>
@@ -1549,7 +1571,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       </div>
 
       <div style="display: flex; gap: 8px; align-items: center;">
-        <select class="btn" id="sortSelect" onchange="handleSortSelect(this.value)" style="padding: 7px 10px;">
+        <select class="btn" id="sortSelect" onchange="handleSortSelect(this.value)" style="padding: 7px 12px;">
           <option value="avg_ttft-asc">Sort: Fastest TTFT</option>
           <option value="avg_tps-desc">Sort: Highest Speed</option>
           <option value="avg_total-asc">Sort: Total Duration</option>
@@ -1586,7 +1608,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
 
     <!-- Footer -->
     <footer class="footer">
-      Generated by <a href="https://github.com/mijanlab/LLMtest" target="_blank">llmtest</a> • Zero-dependency high-precision LLM evaluation suite
+      Generated by <a href="https://github.com/mijanlab/LLMtest" target="_blank">LLMtest</a> • TEST / COMPARE / CHOOSE BETTER
     </footer>
   </div>
 
@@ -1597,7 +1619,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"></path><path d="M8 3H3v5"></path><path d="M12 22v-8"></path><path d="m8 7 4 4 4-4"></path></svg>
       Compare Side-by-Side
     </button>
-    <button class="btn" onclick="clearSelection()" style="padding: 5px 9px;">Clear</button>
+    <button class="btn" onclick="clearSelection()" style="padding: 5px 10px;">Clear</button>
   </div>
 
   <!-- Model Detail Modal -->
@@ -1632,7 +1654,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
 
   <!-- Toast Notification -->
   <div class="toast" id="toast">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--emerald)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--neon-green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
     <span id="toastMsg">Copied</span>
   </div>
 
@@ -1730,7 +1752,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
 
       const valid = passed.filter(r => r.avg_ttft !== null && r.avg_tps !== null);
       if (!valid.length) {
-        ctx.fillStyle = '#71717a';
+        ctx.fillStyle = '#506556';
         ctx.font = '13px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('No completed latency benchmarks to plot', w / 2, h / 2);
@@ -1741,7 +1763,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       const maxTPS = Math.max(...valid.map(r => r.avg_tps)) * 1.15 || 1;
 
       // Draw Grid & Axes
-      ctx.strokeStyle = '#1c1c24';
+      ctx.strokeStyle = '#122016';
       ctx.lineWidth = 1;
 
       for (let i = 0; i <= 4; i++) {
@@ -1751,7 +1773,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         ctx.lineTo(w - pad.right, y);
         ctx.stroke();
 
-        ctx.fillStyle = '#52525b';
+        ctx.fillStyle = '#506556';
         ctx.font = '10px monospace';
         ctx.textAlign = 'right';
         ctx.fillText(`${Math.round(maxTPS * (1 - i / 4))} t/s`, pad.left - 6, y + 3);
@@ -1764,7 +1786,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         ctx.lineTo(x, h - pad.bottom);
         ctx.stroke();
 
-        ctx.fillStyle = '#52525b';
+        ctx.fillStyle = '#506556';
         ctx.font = '10px monospace';
         ctx.textAlign = 'center';
         const ttVal = (maxTTFT * (i / 4)).toFixed(1);
@@ -1772,7 +1794,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       }
 
       // Axis labels
-      ctx.fillStyle = '#71717a';
+      ctx.fillStyle = '#8ba391';
       ctx.font = '11px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('TTFT (Latency, lower is better) →', pad.left + (w - pad.left - pad.right) / 2, h - 6);
@@ -1787,9 +1809,9 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       points.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = '#38bdf8';
-        ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#4ade80';
+        ctx.shadowColor = '#4ade80';
+        ctx.shadowBlur = 10;
         ctx.fill();
         ctx.shadowBlur = 0;
       });
@@ -1812,8 +1834,8 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
           tooltip.style.top = `${match.y - 20}px`;
           tooltip.innerHTML = `
             <div style="font-weight: 700; color: #fff; margin-bottom: 2px;">${match.r.model}</div>
-            <div style="color: var(--sky);">TTFT: ${match.r.avg_ttft.toFixed(3)}s</div>
-            <div style="color: var(--emerald);">Speed: ${match.r.avg_tps.toFixed(1)} tok/s</div>
+            <div style="color: var(--neon-green);">TTFT: ${match.r.avg_ttft.toFixed(3)}s</div>
+            <div style="color: var(--neon-green);">Speed: ${match.r.avg_tps.toFixed(1)} tok/s</div>
           `;
         } else {
           tooltip.style.opacity = '0';
@@ -1840,7 +1862,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     setTimeout(initScatterPlot, 50);
     window.addEventListener('resize', initScatterPlot);
 
-    // Keyboard Hotkey Support: '/' to focus search, 'Esc' to close modal
+    // Keyboard Hotkeys
     window.addEventListener('keydown', (e) => {
       if (e.key === '/' && document.activeElement !== document.getElementById('searchInput')) {
         e.preventDefault();
@@ -1895,7 +1917,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
 
     function copyEndpoint() {
       navigator.clipboard.writeText(document.getElementById('ep-display').textContent).then(() => {
-        showToast('Endpoint URL copied to clipboard');
+        showToast('Endpoint URL copied');
       });
     }
 
@@ -2023,7 +2045,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
           </td>
           <td><div class="preview-truncate" title="${note.replace(/"/g, '&quot;')}">${note}</div></td>
           <td style="text-align: right;">
-            <button class="btn" style="padding: 4px 9px; font-size: 11.5px;" onclick='openModal(${JSON.stringify(r).replace(/'/g, "&#39;")})'>Inspect</button>
+            <button class="btn" style="padding: 4px 10px; font-size: 11.5px;" onclick='openModal(${JSON.stringify(r).replace(/'/g, "&#39;")})'>Inspect</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -2076,11 +2098,11 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
             <div class="card-metrics-3">
               <div class="card-metric-col">
                 <span class="card-metric-lbl">TTFT</span>
-                <span class="card-metric-val" style="color: var(--sky);">${ttftStr}</span>
+                <span class="card-metric-val" style="color: #38bdf8;">${ttftStr}</span>
               </div>
               <div class="card-metric-col">
                 <span class="card-metric-lbl">Speed</span>
-                <span class="card-metric-val" style="color: var(--emerald);">${tpsStr}</span>
+                <span class="card-metric-val" style="color: var(--neon-green);">${tpsStr}</span>
               </div>
               <div class="card-metric-col">
                 <span class="card-metric-lbl">Total</span>
@@ -2140,7 +2162,6 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       const grid = document.getElementById('compareGrid');
       grid.innerHTML = '';
 
-      // Find fastest TTFT and highest TPS among selected
       const validTTFT = selectedList.filter(r => r.avg_ttft !== null);
       const minTTFT = validTTFT.length ? Math.min(...validTTFT.map(r => r.avg_ttft)) : null;
       const validTPS = selectedList.filter(r => r.avg_tps !== null);
@@ -2157,24 +2178,24 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         const totalStr = r.avg_total !== null ? `${r.avg_total.toFixed(3)} s` : '—';
         const tpsStr = r.avg_tps !== null ? `${r.avg_tps.toFixed(1)} tok/s` : '—';
 
-        let preview = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\\n') : 'No output recorded');
+        let preview = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\n') : 'No output recorded');
 
         col.innerHTML = `
           <div class="compare-col-header">
             <div>${r.model}</div>
-            <div style="font-size: 11px; font-weight: 500; color: ${r.status === 'PASS' ? 'var(--emerald)' : 'var(--rose)'}; margin-top: 2px;">
+            <div style="font-size: 11px; font-weight: 500; color: ${r.status === 'PASS' ? 'var(--neon-green)' : 'var(--rose)'}; margin-top: 2px;">
               ${r.status} (${r.success}/${r.runs})
             </div>
           </div>
           <div>
             <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">TTFT</div>
-            <div style="font-size: 16px; font-weight: 700; font-family: var(--font-mono); color: ${isFastestTTFT ? 'var(--emerald)' : 'var(--sky)'};">
+            <div style="font-size: 16px; font-weight: 700; font-family: var(--font-mono); color: ${isFastestTTFT ? 'var(--neon-green)' : '#38bdf8'};">
               ${ttftStr} ${isFastestTTFT ? '⚡ Best' : ''}
             </div>
           </div>
           <div>
             <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Speed</div>
-            <div style="font-size: 16px; font-weight: 700; font-family: var(--font-mono); color: ${isFastestTPS ? 'var(--emerald)' : 'var(--text)'};">
+            <div style="font-size: 16px; font-weight: 700; font-family: var(--font-mono); color: ${isFastestTPS ? 'var(--neon-green)' : 'var(--text)'};">
               ${tpsStr} ${isFastestTPS ? '🚀 Peak' : ''}
             </div>
           </div>
@@ -2185,7 +2206,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
               <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Response Output</span>
-              <button class="btn" style="padding: 2px 6px; font-size: 11px;" onclick="copyTextToClipboard('${encodeURIComponent(preview)}')">Copy</button>
+              <button class="btn" style="padding: 2px 8px; font-size: 11px;" onclick="copyTextToClipboard('${encodeURIComponent(preview)}')">Copy</button>
             </div>
             <div class="code-box" style="max-height: 200px;">${preview.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
           </div>
@@ -2211,26 +2232,26 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
       const totalStr = r.avg_total !== null ? `${r.avg_total.toFixed(3)} s` : '—';
       const tpsStr = r.avg_tps !== null ? `${r.avg_tps.toFixed(1)} tok/s` : '—';
 
-      let previewContent = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\\n') : 'No output recorded.');
+      let previewContent = r.sample_preview || (r.errors && r.errors.length ? r.errors.join('\n') : 'No output recorded.');
       if (r.status === 'SKIPPED') {
         previewContent = 'Model evaluation was skipped: Non-available fund or quota limit.';
       }
 
       document.getElementById('modalBody').innerHTML = `
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-          <div style="background: #14141a; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
+          <div style="background: #0d1510; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
             <div style="font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase;">Status</div>
             <div style="font-size: 15px; font-weight: 700; font-family: var(--font-mono); margin-top: 2px;">${r.status} (${r.success}/${r.runs})</div>
           </div>
-          <div style="background: #14141a; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
+          <div style="background: #0d1510; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
             <div style="font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase;">TTFT</div>
-            <div style="font-size: 15px; font-weight: 700; font-family: var(--font-mono); color: var(--sky); margin-top: 2px;">${ttftStr}</div>
+            <div style="font-size: 15px; font-weight: 700; font-family: var(--font-mono); color: #38bdf8; margin-top: 2px;">${ttftStr}</div>
           </div>
-          <div style="background: #14141a; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
+          <div style="background: #0d1510; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
             <div style="font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase;">Speed</div>
-            <div style="font-size: 15px; font-weight: 700; font-family: var(--font-mono); color: var(--emerald); margin-top: 2px;">${tpsStr}</div>
+            <div style="font-size: 15px; font-weight: 700; font-family: var(--font-mono); color: var(--neon-green); margin-top: 2px;">${tpsStr}</div>
           </div>
-          <div style="background: #14141a; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
+          <div style="background: #0d1510; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px;">
             <div style="font-size: 11px; color: var(--text-dim); font-weight: 600; text-transform: uppercase;">Total Time</div>
             <div style="font-size: 15px; font-weight: 700; font-family: var(--font-mono); margin-top: 2px;">${totalStr}</div>
           </div>
@@ -2239,7 +2260,7 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Prompt Response / Diagnostics</span>
-            <button class="btn" style="padding: 3px 8px; font-size: 11.5px;" onclick="copyTextToClipboard('${encodeURIComponent(previewContent)}')">Copy Response</button>
+            <button class="btn" style="padding: 3px 9px; font-size: 11.5px;" onclick="copyTextToClipboard('${encodeURIComponent(previewContent)}')">Copy Response</button>
           </div>
           <div class="code-box">${previewContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
         </div>
@@ -2247,9 +2268,9 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Raw Evaluation JSON</span>
-            <button class="btn" style="padding: 3px 8px; font-size: 11.5px;" onclick="copyTextToClipboard('${encodeURIComponent(JSON.stringify(r, null, 2))}')">Copy JSON</button>
+            <button class="btn" style="padding: 3px 9px; font-size: 11.5px;" onclick="copyTextToClipboard('${encodeURIComponent(JSON.stringify(r, null, 2))}')">Copy JSON</button>
           </div>
-          <div class="code-box" style="font-size: 11.5px; max-height: 160px; color: #a1a1aa;">${JSON.stringify(r, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+          <div class="code-box" style="font-size: 11.5px; max-height: 160px; color: #8ba391;">${JSON.stringify(r, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
         </div>
       `;
       document.getElementById('modalOverlay').classList.add('open');
@@ -2269,37 +2290,37 @@ HTML_REPORT_TEMPLATE = """<!DOCTYPE html>
     }
 
     function copyMarkdown() {
-      let md = "# LLM Benchmark Results\\n\\n";
-      md += `**Endpoint**: \`${DATA.endpoint || '{ENDPOINT}'}\`\\n\\n`;
-      md += "| # | Model ID | Status | TTFT | Total Time | Speed | Output Preview |\\n|---|---|---|---|---|---|---|\\n";
+      let md = "# LLM Benchmark Results\n\n";
+      md += `**Endpoint**: \`${DATA.endpoint || '{ENDPOINT}'}\`\n\n`;
+      md += "| # | Model ID | Status | TTFT | Total Time | Speed | Output Preview |\n|---|---|---|---|---|---|---|\n";
       results.forEach((r, idx) => {
         const ttftStr = r.avg_ttft ? (r.avg_ttft < 1 ? `${Math.round(r.avg_ttft * 1000)} ms` : `${r.avg_ttft.toFixed(3)} s`) : '—';
         const totalStr = r.avg_total ? `${r.avg_total.toFixed(3)} s` : '—';
         const tpsStr = r.avg_tps ? `${r.avg_tps.toFixed(1)} tok/s` : '—';
-        const preview = (r.sample_preview || (r.errors || []).join(' ')).replace(/\\|/g, '\\\\|').replace(/\\n/g, ' ');
-        md += `| ${idx + 1} | \`${r.model}\` | ${r.status} | ${ttftStr} | ${totalStr} | ${tpsStr} | ${preview.slice(0, 50)} |\\n`;
+        const preview = (r.sample_preview || (r.errors || []).join(' ')).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+        md += `| ${idx + 1} | \`${r.model}\` | ${r.status} | ${ttftStr} | ${totalStr} | ${tpsStr} | ${preview.slice(0, 50)} |\n`;
       });
-      navigator.clipboard.writeText(md).then(() => showToast('Markdown table copied to clipboard'));
+      navigator.clipboard.writeText(md).then(() => showToast('Markdown table copied'));
     }
 
     function copySummaryCard() {
-      let card = `⚡ LLM Benchmark Summary (${DATA.endpoint || '{ENDPOINT}'})\\n`;
-      card += `• Total Models : ${total}\\n`;
-      card += `• Active Passed: ${passCount}/${activeTotal} (${passPct}%)\\n`;
+      let card = `⚡ LLMtest Benchmark Summary (${DATA.endpoint || '{ENDPOINT}'})\n`;
+      card += `• Total Models : ${total}\n`;
+      card += `• Active Passed: ${passCount}/${activeTotal} (${passPct}%)\n`;
       if (document.getElementById('kpi-ttft-model').textContent !== '—') {
-        card += `• Fastest TTFT : ${document.getElementById('kpi-ttft').textContent} (${document.getElementById('kpi-ttft-model').textContent})\\n`;
+        card += `• Fastest TTFT : ${document.getElementById('kpi-ttft').textContent} (${document.getElementById('kpi-ttft-model').textContent})\n`;
       }
       if (document.getElementById('kpi-speed-model').textContent !== '—') {
-        card += `• Peak Speed   : ${document.getElementById('kpi-speed').textContent} (${document.getElementById('kpi-speed-model').textContent})\\n`;
+        card += `• Peak Speed   : ${document.getElementById('kpi-speed').textContent} (${document.getElementById('kpi-speed-model').textContent})\n`;
       }
       navigator.clipboard.writeText(card).then(() => showToast('Summary card copied'));
     }
 
     function downloadCSV() {
-      let csv = "Model ID,Status,Success Runs,Total Runs,Avg TTFT (s),Avg Total Time (s),Avg Speed (tok/s),Preview / Note\\n";
+      let csv = "Model ID,Status,Success Runs,Total Runs,Avg TTFT (s),Avg Total Time (s),Avg Speed (tok/s),Preview / Note\n";
       results.forEach(r => {
         const note = (r.sample_preview || (r.errors || []).join(' ')).replace(/"/g, '""');
-        csv += `"${r.model}","${r.status}",${r.success},${r.runs},${r.avg_ttft || ''},${r.avg_total || ''},${r.avg_tps || ''},"${note}"\\n`;
+        csv += `"${r.model}","${r.status}",${r.success},${r.runs},${r.avg_ttft || ''},${r.avg_total || ''},${r.avg_tps || ''},"${note}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
