@@ -7,5 +7,4 @@ dist/
 graphify-out/
 benchmark_report.*
 *.html
-!/index.html
 
