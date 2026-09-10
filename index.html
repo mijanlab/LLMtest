@@ -4,15 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="LLMtest is a fast, privacy-first CLI benchmark for measuring TTFT, latency, and throughput across OpenAI-compatible models.">
+  <meta name="keywords" content="LLM benchmark, AI model benchmark, TTFT, token throughput, OpenAI compatible API, model latency, streaming benchmark, Python CLI, LLM performance">
+  <meta name="author" content="Mijanur Rahman">
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#080a09">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="LLMtest">
+  <meta property="og:title" content="LLMtest — Know which model is actually fast">
+  <meta property="og:description" content="Discover, benchmark, and compare every model behind any OpenAI-compatible endpoint.">
+  <meta property="og:url" content="https://mijanlab.github.io/LLMtest/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="LLMtest — LLM speed and latency benchmark">
+  <meta name="twitter:description" content="Measure TTFT, latency, throughput, and reliability across OpenAI-compatible models.">
   <title>LLMtest — Know which model is actually fast</title>
+  <link rel="canonical" href="https://mijanlab.github.io/LLMtest/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23080a09'/%3E%3Cpath d='M7 22l5-14 4 9 5-4 4 9' fill='none' stroke='%23b7f34a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="web/styles.css">
   <script src="web/script.js" defer></script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"LLMtest","applicationCategory":"DeveloperApplication","operatingSystem":"Windows, macOS, Linux","softwareVersion":"1.0.6","description":"Streaming latency and throughput benchmark for OpenAI-compatible LLM endpoints.","url":"https://github.com/mijanlab/LLMtest","downloadUrl":"https://github.com/mijanlab/LLMtest","license":"https://opensource.org/licenses/MIT","programmingLanguage":"Python"}</script>
 </head>
 <body>
+  <div class="scroll-progress" aria-hidden="true"><i></i></div>
   <svg class="svg-sprite" aria-hidden="true">
     <symbol id="icon-mark" viewBox="0 0 32 32"><path d="M8 4h16a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4Z"/><path d="m11 21 4-10 2.5 6 3.5-2 2 6"/></symbol>
     <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
@@ -30,6 +46,8 @@
     <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
     <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
     <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7L20 14"/><path d="M20 5v6h-6"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2m-9 0 1 15h8l1-15M10 10v7m4-7v7"/></symbol>
   </svg>
 
   <a class="skip-link" href="#main">Skip to content</a>
@@ -188,8 +206,9 @@
           </ol>
         </div>
         <div class="terminal reveal" data-delay="140">
-          <div class="terminal-bar"><div><i></i><i></i><i></i></div><span>llmtest — zsh</span><small>80 × 24</small></div>
-          <div class="terminal-body" aria-label="Example LLMtest terminal output">
+          <div class="terminal-bar"><div class="terminal-dots"><i></i><i></i><i></i></div><span>llmtest — interactive demo</span><div class="terminal-controls"><button class="terminal-replay" type="button" aria-label="Replay terminal demo"><svg><use href="#icon-refresh"></use></svg><span>Replay</span></button><button class="terminal-clear" type="button" aria-label="Clear terminal"><svg><use href="#icon-trash"></use></svg><span>Clear</span></button></div></div>
+          <div class="terminal-body" aria-label="Interactive LLMtest terminal demo">
+            <div id="terminal-output" aria-live="polite">
             <p><span class="prompt">$</span> llmtest https://api.openai.com/v1 sk-••••</p>
             <p class="muted">Discovering models from endpoint...</p>
             <p><span class="ok term-icon"><svg><use href="#icon-check"></use></svg></span> 8 models found · 3 concurrent workers</p>
@@ -201,7 +220,9 @@
             <div class="term-rule"></div>
             <p><span class="ok term-icon"><svg><use href="#icon-check"></use></svg></span> Complete in 8.02s</p>
             <p class="muted file-line">benchmark_report.html</p>
-            <span class="cursor"></span>
+            </div>
+            <form class="terminal-form"><label for="terminal-command" class="prompt">$</label><input id="terminal-command" type="text" autocomplete="off" spellcheck="false" placeholder="Type llmtest --help" aria-describedby="terminal-hint"><button type="submit">Run <svg><use href="#icon-arrow"></use></svg></button></form>
+            <p class="terminal-hint" id="terminal-hint">Try: llmtest, llmtest --help, llmtest --version, clear</p>
           </div>
         </div>
       </div>

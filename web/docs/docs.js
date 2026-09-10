@@ -1,6 +1,19 @@
 const mobileButton = document.querySelector('.mobile-nav');
 const sidebar = document.querySelector('.sidebar');
 
+const progress = document.createElement('div');
+progress.className = 'docs-progress';
+progress.setAttribute('aria-hidden', 'true');
+document.body.appendChild(progress);
+const updateProgress = () => {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  const value = total > 0 ? (window.scrollY / total) * 100 : 0;
+  progress.style.setProperty('--progress', `${Math.min(100, Math.max(0, value))}%`);
+};
+updateProgress();
+window.addEventListener('scroll', updateProgress, { passive: true });
+window.addEventListener('resize', updateProgress);
+
 if (mobileButton && sidebar) {
   mobileButton.addEventListener('click', () => {
     const open = sidebar.classList.toggle('open');
