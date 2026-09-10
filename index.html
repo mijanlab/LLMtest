@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LLMtest is a fast, privacy-first CLI benchmark for measuring TTFT, latency, and throughput across OpenAI-compatible models.">
+  <meta name="theme-color" content="#080a09">
+  <title>LLMtest — Know which model is actually fast</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="web/styles.css">
+  <script src="web/script.js" defer></script>
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="icon-mark" viewBox="0 0 32 32"><path d="M8 4h16a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4Z"/><path d="m11 21 4-10 2.5 6 3.5-2 2 6"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="icon-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.3 4 5 5 0 0 0 19.1.5S18 0 15 2a13.4 13.4 0 0 0-7 0C5-.1 3.9.5 3.9.5A5 5 0 0 0 3.7 4a5.4 5.4 0 0 0-1.5 3.7c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4m0-3c-3 .9-3-1.5-4-2"/></symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="icon-bolt" viewBox="0 0 24 24"><path d="m13 2-9 12h8l-1 8 9-12h-8l1-8Z"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="icon-chart" viewBox="0 0 24 24"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></symbol>
+    <symbol id="icon-layers" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></symbol>
+    <symbol id="icon-terminal" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="m6 8 4 4-4 4m7 0h5"/></symbol>
+    <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></symbol>
+    <symbol id="icon-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  </svg>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" id="top">
+    <div class="container nav-wrap">
+      <a class="brand" href="#top" aria-label="LLMtest home">
+        <span class="brand-mark"><svg><use href="#icon-mark"></use></svg></span>
+        <span>LLM<span>test</span></span>
+      </a>
+      <button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-nav">
+        <svg class="menu-open"><use href="#icon-menu"></use></svg>
+        <svg class="menu-close"><use href="#icon-close"></use></svg>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#workflow">How it works</a>
+        <a href="#metrics">Metrics</a>
+        <a class="nav-github" href="https://github.com/mijanlab/LLMtest" target="_blank" rel="noreferrer">
+          <svg><use href="#icon-github"></use></svg> GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="hero-glow hero-glow-a"></div>
+      <div class="hero-glow hero-glow-b"></div>
+      <div class="container hero-grid">
+        <div class="hero-copy reveal">
+          <div class="eyebrow"><span></span> Open source · v1.0.6</div>
+          <h1>Stop guessing.<br><em>Benchmark it.</em></h1>
+          <p class="hero-lede">One command to discover, test, and compare every model behind any OpenAI-compatible endpoint.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#quickstart">Start benchmarking <svg><use href="#icon-arrow"></use></svg></a>
+            <a class="button button-secondary" href="https://github.com/mijanlab/LLMtest" target="_blank" rel="noreferrer"><svg><use href="#icon-github"></use></svg> View source</a>
+          </div>
+          <div class="proof-row" aria-label="Product highlights">
+            <span><svg><use href="#icon-check"></use></svg> Python 3.8+</span>
+            <span><svg><use href="#icon-check"></use></svg> Cross-platform</span>
+            <span><svg><use href="#icon-check"></use></svg> MIT licensed</span>
+          </div>
+        </div>
+
+        <div class="hero-visual reveal" data-delay="150">
+          <div class="visual-orbit orbit-one"></div>
+          <div class="visual-orbit orbit-two"></div>
+          <div class="app-window">
+            <div class="window-bar">
+              <div class="window-dots"><i></i><i></i><i></i></div>
+              <span>benchmark_report.html</span>
+              <div class="live-pill"><i></i> Live run</div>
+            </div>
+            <div class="window-body">
+              <div class="dash-heading">
+                <div><span>OVERVIEW</span><strong>Model performance</strong></div>
+                <div class="dash-meta">8 models · 1 run</div>
+              </div>
+              <div class="metric-cards">
+                <div class="metric-card">
+                  <span>Fastest TTFT</span>
+                  <strong><b data-count="380">0</b><small>ms</small></strong>
+                  <em>gemini-flash</em>
+                </div>
+                <div class="metric-card accent">
+                  <span>Peak speed</span>
+                  <strong><b data-count="56.1">0</b><small>tok/s</small></strong>
+                  <em>gemini-flash</em>
+                </div>
+                <div class="metric-card">
+                  <span>Success rate</span>
+                  <strong><b data-count="100">0</b><small>%</small></strong>
+                  <em>8 of 8 passed</em>
+                </div>
+              </div>
+              <div class="chart-panel">
+                <div class="chart-top"><span>Throughput comparison</span><small>Higher is better</small></div>
+                <div class="bar-row"><span>gemini-flash</span><div><i style="--bar: 94%"></i></div><b>56.1</b></div>
+                <div class="bar-row"><span>gpt-4o-mini</span><div><i style="--bar: 76%"></i></div><b>45.4</b></div>
+                <div class="bar-row"><span>llama-3.1-8b</span><div><i style="--bar: 61%"></i></div><b>36.2</b></div>
+                <div class="bar-row"><span>deepseek-r1</span><div><i style="--bar: 39%"></i></div><b>23.1</b></div>
+              </div>
+              <div class="run-status"><span><i></i> Benchmark complete</span><code>8.02s total</code></div>
+            </div>
+          </div>
+          <div class="floating-tag tag-speed"><svg><use href="#icon-bolt"></use></svg><span><small>STREAMING</small>56.1 tok/s</span></div>
+          <div class="floating-tag tag-secure"><svg><use href="#icon-shield"></use></svg><span><small>API KEYS</small>Never stored</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-strip" aria-label="Core capabilities">
+      <div class="container trust-grid">
+        <div><strong><span data-count="0">0</span></strong><p>core dependencies</p></div>
+        <div><strong>Any</strong><p>OpenAI-compatible API</p></div>
+        <div><strong><span data-count="4">0</span></strong><p>export formats</p></div>
+        <div><strong><span data-count="100">0</span>%</strong><p>offline reports</p></div>
+      </div>
+    </section>
+
+    <section class="section features" id="features">
+      <div class="container">
+        <div class="section-heading reveal">
+          <div><span class="kicker">Purpose-built for model evaluation</span><h2>Signal, not noise.</h2></div>
+          <p>Everything you need to answer one practical question: which model performs best on your infrastructure?</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card feature-wide reveal">
+            <div class="feature-icon"><svg><use href="#icon-bolt"></use></svg></div>
+            <h3>Measure what users feel</h3>
+            <p>Capture time to first token, full response latency, and generation speed from real streamed responses.</p>
+            <div class="latency-visual" aria-label="Streaming response timeline">
+              <div class="latency-labels"><span>Request</span><span>First token</span><span>Complete</span></div>
+              <div class="latency-line"><i></i><i></i><i></i><b></b></div>
+              <div class="latency-values"><span>0ms</span><span>380ms TTFT</span><span>760ms total</span></div>
+            </div>
+          </article>
+          <article class="feature-card reveal" data-delay="80">
+            <div class="feature-icon"><svg><use href="#icon-layers"></use></svg></div>
+            <h3>Test the whole catalog</h3>
+            <p>Discover endpoint models automatically, filter by name, and benchmark them concurrently.</p>
+            <div class="model-stack"><span>gpt-4o-mini <b>PASS</b></span><span>llama-3.1-8b <b>PASS</b></span><span>gemini-flash <b>PASS</b></span></div>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-icon"><svg><use href="#icon-chart"></use></svg></div>
+            <h3>Reports that explain</h3>
+            <p>Search, filter, compare, inspect, and export from a self-contained dashboard that works offline.</p>
+            <div class="report-types"><span>HTML</span><span>CSV</span><span>JSON</span><span>MD</span></div>
+          </article>
+          <article class="feature-card feature-wide privacy-card reveal" data-delay="80">
+            <div class="feature-copy">
+              <div class="feature-icon"><svg><use href="#icon-shield"></use></svg></div>
+              <h3>Your credentials stay yours</h3>
+              <p>Keys remain in volatile memory during each run. No credentials, prompts, or requests are written to disk by LLMtest.</p>
+            </div>
+            <div class="privacy-visual">
+              <div class="shield-ring"><span><svg><use href="#icon-shield"></use></svg></span></div>
+              <div class="privacy-label"><i></i> Local process only</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section workflow" id="workflow">
+      <div class="container workflow-grid">
+        <div class="workflow-copy reveal">
+          <span class="kicker">From endpoint to evidence</span>
+          <h2>Three steps.<br>One clear winner.</h2>
+          <p>LLMtest turns an endpoint and API key into a decision-ready performance report—without a server, account, or hosted dashboard.</p>
+          <ol class="steps">
+            <li class="active"><span>01</span><div><strong>Connect</strong><p>Point to any compatible endpoint.</p></div></li>
+            <li><span>02</span><div><strong>Benchmark</strong><p>Stream concurrent test runs.</p></div></li>
+            <li><span>03</span><div><strong>Compare</strong><p>Explore the offline report.</p></div></li>
+          </ol>
+        </div>
+        <div class="terminal reveal" data-delay="140">
+          <div class="terminal-bar"><div><i></i><i></i><i></i></div><span>llmtest — zsh</span><small>80 × 24</small></div>
+          <div class="terminal-body" aria-label="Example LLMtest terminal output">
+            <p><span class="prompt">$</span> llmtest https://api.openai.com/v1 sk-••••</p>
+            <p class="muted">Discovering models from endpoint...</p>
+            <p><span class="ok term-icon"><svg><use href="#icon-check"></use></svg></span> 8 models found · 3 concurrent workers</p>
+            <div class="term-rule"></div>
+            <p><span class="dim">01</span> gpt-4o-mini <span class="dots"></span> <b>45.4 tok/s</b></p>
+            <p><span class="dim">02</span> gemini-flash <span class="dots"></span> <b>56.1 tok/s</b></p>
+            <p><span class="dim">03</span> llama-3.1-8b <span class="dots"></span> <b>36.2 tok/s</b></p>
+            <p><span class="dim">04</span> deepseek-r1 <span class="dots"></span> <b>23.1 tok/s</b></p>
+            <div class="term-rule"></div>
+            <p><span class="ok term-icon"><svg><use href="#icon-check"></use></svg></span> Complete in 8.02s</p>
+            <p class="muted file-line">benchmark_report.html</p>
+            <span class="cursor"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section metrics" id="metrics">
+      <div class="container">
+        <div class="section-heading reveal">
+          <div><span class="kicker">A complete performance picture</span><h2>Every millisecond accounted for.</h2></div>
+          <p>Built around streaming behavior, not synthetic scores, so results map directly to the experience in your product.</p>
+        </div>
+        <div class="metrics-grid">
+          <article class="metric-definition reveal"><span class="metric-number">01</span><div class="metric-glyph"><i></i><i></i><i></i></div><h3>TTFT</h3><p>Request start to first streamed chunk. The clearest measure of perceived responsiveness.</p><small>Lower is better</small></article>
+          <article class="metric-definition reveal" data-delay="80"><span class="metric-number">02</span><div class="metric-glyph glyph-speed"><i></i><i></i><i></i></div><h3>Throughput</h3><p>Completed output tokens divided by generation time. Your sustained streaming velocity.</p><small>Higher is better</small></article>
+          <article class="metric-definition reveal" data-delay="160"><span class="metric-number">03</span><div class="metric-glyph glyph-rate"><i></i><i></i><i></i></div><h3>Success rate</h3><p>Valid, non-empty completions across repeated runs, with errors categorized clearly.</p><small>Consistency matters</small></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section quickstart" id="quickstart">
+      <div class="container quickstart-card reveal">
+        <div class="quickstart-copy">
+          <span class="kicker">Ready when you are</span>
+          <h2>Your fastest model is one command away.</h2>
+          <p>Install globally, point LLMtest at your endpoint, and get a complete interactive report in minutes.</p>
+        </div>
+        <div class="install-box">
+          <div class="install-tabs" role="tablist" aria-label="Choose operating system">
+            <button class="active" type="button" role="tab" aria-selected="true" data-command="pip3 install git+https://github.com/mijanlab/LLMtest.git">macOS / Linux</button>
+            <button type="button" role="tab" aria-selected="false" data-command="pip install git+https://github.com/mijanlab/LLMtest.git">Windows</button>
+          </div>
+          <div class="command-row"><code><span>$</span> <b id="install-command">pip3 install git+https://github.com/mijanlab/LLMtest.git</b></code><button class="copy-button" type="button" aria-label="Copy install command"><svg><use href="#icon-copy"></use></svg><span>Copy</span></button></div>
+          <div class="install-note"><svg><use href="#icon-terminal"></use></svg> Then run <code>llmtest</code> from anywhere.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-main">
+      <a class="brand" href="#top"><span class="brand-mark"><svg><use href="#icon-mark"></use></svg></span><span>LLM<span>test</span></span></a>
+      <p>Open-source LLM performance benchmarking, built for developers who measure before they choose.</p>
+      <div class="footer-links"><a href="https://github.com/mijanlab/LLMtest" target="_blank" rel="noreferrer"><svg><use href="#icon-github"></use></svg> Repository</a><a href="https://github.com/mijanlab/LLMtest#quickstart" target="_blank" rel="noreferrer"><svg><use href="#icon-file"></use></svg> Documentation</a></div>
+    </div>
+    <div class="container footer-bottom"><span>Built by Mijanur Rahman · MIT License</span><a href="#top">Back to top <svg><use href="#icon-arrow"></use></svg></a></div>
+  </footer>
+  <div class="copy-toast" role="status" aria-live="polite"><svg><use href="#icon-check"></use></svg> Command copied</div>
+</body>
+</html>
