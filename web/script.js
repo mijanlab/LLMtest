@@ -3,6 +3,12 @@ const menuButton = document.querySelector('.menu-button');
 const navigation = document.querySelector('.site-nav');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+const resetInitialScroll = () => {
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+};
+resetInitialScroll();
+window.addEventListener('pageshow', resetInitialScroll, { once: true });
+
 const updateHeader = () => header.classList.toggle('scrolled', window.scrollY > 80);
 updateHeader();
 window.addEventListener('scroll', updateHeader, { passive: true });
