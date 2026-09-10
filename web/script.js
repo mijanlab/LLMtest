@@ -123,3 +123,92 @@ document.querySelectorAll('.faq-item button').forEach((button) => {
     }
   });
 });
+
+const progressBar = document.querySelector('.scroll-progress i');
+const updateScrollProgress = () => {
+  const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+  progressBar.style.setProperty('--scroll', `${Math.min(100, Math.max(0, progress))}%`);
+};
+updateScrollProgress();
+window.addEventListener('scroll', updateScrollProgress, { passive: true });
+window.addEventListener('resize', updateScrollProgress);
+
+const terminalOutput = document.querySelector('#terminal-output');
+const terminalForm = document.querySelector('.terminal-form');
+const terminalInput = document.querySelector('#terminal-command');
+const terminalReplay = document.querySelector('.terminal-replay');
+const terminalClear = document.querySelector('.terminal-clear');
+const initialTerminalNodes = [...terminalOutput.children].map((node) => node.cloneNode(true));
+let replayTimers = [];
+
+const clearReplayTimers = () => {
+  replayTimers.forEach(clearTimeout);
+  replayTimers = [];
+};
+
+const appendTerminalLine = (text, className = '') => {
+  const line = document.createElement('p');
+  line.className = `term-new ${className}`.trim();
+  line.textContent = text;
+  terminalOutput.appendChild(line);
+  line.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
+};
+
+const replayTerminal = () => {
+  clearReplayTimers();
+  terminalOutput.replaceChildren();
+  initialTerminalNodes.forEach((source, index) => {
+    const timer = setTimeout(() => {
+      const node = source.cloneNode(true);
+      node.classList.add('term-new');
+      terminalOutput.appendChild(node);
+    }, reducedMotion ? 0 : index * 95);
+    replayTimers.push(timer);
+  });
+};
+
+terminalReplay.addEventListener('click', replayTerminal);
+terminalClear.addEventListener('click', () => {
+  clearReplayTimers();
+  terminalOutput.replaceChildren();
+  terminalInput.focus();
+});
+
+terminalForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  clearReplayTimers();
+  const command = terminalInput.value.trim();
+  if (!command) return;
+  appendTerminalLine(`$ ${command}`, 'term-command');
+  terminalInput.value = '';
+  const normalized = command.toLowerCase();
+  if (normalized === 'clear') {
+    terminalOutput.replaceChildren();
+  } else if (normalized === 'llmtest --version' || normalized === 'llmtest -v') {
+    appendTerminalLine('llmtest 1.0.6', 'muted');
+  } else if (normalized === 'llmtest --help' || normalized === 'llmtest -h') {
+    appendTerminalLine('usage: llmtest [endpoint | update | uninstall] [key] [filter] [options]', 'muted');
+    appendTerminalLine('options: --runs  --concurrency  --prompt  --timeout  --open', 'muted');
+  } else if (normalized === 'llmtest' || normalized.startsWith('llmtest ')) {
+    appendTerminalLine('Interactive setup ready. Endpoint, key, filter, and concurrency will be prompted.', 'muted');
+    appendTerminalLine('Demo only — run this command in your local terminal to benchmark models.', 'ok');
+  } else {
+    appendTerminalLine(`Command not available in this demo: ${command}`, 'term-error');
+    appendTerminalLine('Try llmtest, llmtest --help, llmtest --version, or clear.', 'muted');
+  }
+});
+
+const heroVisual = document.querySelector('.hero-visual');
+const appWindow = document.querySelector('.app-window');
+if (!reducedMotion && window.matchMedia('(pointer: fine)').matches) {
+  heroVisual.addEventListener('pointermove', (event) => {
+    const bounds = heroVisual.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+    appWindow.style.transform = `rotateY(${(-4 + x * 3).toFixed(2)}deg) rotateX(${(1.5 - y * 3).toFixed(2)}deg) translateY(-2px)`;
+  });
+  heroVisual.addEventListener('pointerleave', () => {
+    appWindow.style.transform = '';
+  });
+}
