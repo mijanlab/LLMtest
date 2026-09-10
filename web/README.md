@@ -2,6 +2,8 @@
 
 Static product site for the LLMtest CLI. It uses plain HTML, CSS, and JavaScript with no build step.
 
+The root `index.html` is the public landing page. This directory contains shared homepage assets and a multi-page documentation site under `docs/`.
+
 ## Preview locally
 
 From the repository root, run:

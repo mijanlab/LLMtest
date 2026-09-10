@@ -219,6 +219,41 @@ h1 em { color: var(--lime); font-style: normal; }
 .install-note { display: flex; align-items: center; gap: 7px; padding: 13px 18px; border-top: 1px solid var(--line); color: #747b72; font-size: 10px; }
 .install-note svg { width: 14px; color: var(--lime); }
 .install-note code { color: #aeb5ab; font-family: var(--font-mono); }
+.install-guide-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-top: 1px solid var(--line); color: #aeb5ab; font-size: 10px; transition: color .2s, background .2s; }
+.install-guide-link:hover { color: var(--lime); background: rgba(183,243,74,.04); }
+.install-guide-link svg { width: 14px; }
+
+.docs-section { padding-top: 30px; background: linear-gradient(180deg, var(--ink), #0d100d); }
+.docs-card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.docs-card { min-height: 300px; display: flex; align-items: flex-start; flex-direction: column; padding: 28px; border: 1px solid var(--line); border-radius: 12px; background: #121612; transition: transform .25s ease, border-color .25s ease, background .25s ease; }
+.docs-card:hover { transform: translateY(-5px); border-color: rgba(183,243,74,.3); background: #161b15; }
+.docs-icon { width: 40px; height: 40px; display: grid; place-items: center; margin-bottom: 35px; border: 1px solid rgba(183,243,74,.18); border-radius: 8px; background: rgba(183,243,74,.06); color: var(--lime); }
+.docs-icon svg { width: 18px; }
+.docs-card small { color: var(--lime); font-family: var(--font-mono); font-size: 8px; letter-spacing: .1em; text-transform: uppercase; }
+.docs-card h3 { margin: 9px 0 9px; font-size: 20px; letter-spacing: -.025em; }
+.docs-card p { margin: 0 0 25px; color: #858c82; font-size: 12px; line-height: 1.65; }
+.docs-card b { display: flex; align-items: center; gap: 5px; margin-top: auto; color: #b7beb4; font-size: 10px; }
+.docs-card:hover b { color: var(--lime); }
+.docs-card b svg { width: 12px; transition: transform .2s; }
+.docs-card:hover b svg { transform: translateX(3px); }
+
+.faq-section { border-top: 1px solid var(--line); background: #0d100d; }
+.faq-grid { display: grid; grid-template-columns: .7fr 1.3fr; gap: 100px; align-items: start; }
+.faq-intro h2 { margin: 12px 0 18px; font-size: clamp(38px, 4vw, 55px); line-height: 1.03; letter-spacing: -.05em; }
+.faq-intro > p { color: var(--muted); line-height: 1.7; }
+.text-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; color: var(--lime); font-size: 12px; font-weight: 700; }
+.text-link svg { width: 15px; }
+.faq-list { border-top: 1px solid var(--line); }
+.faq-item { border-bottom: 1px solid var(--line); }
+.faq-item button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 2px; border: 0; background: transparent; color: #c5cac1; text-align: left; cursor: pointer; font-weight: 600; }
+.faq-item button:hover { color: var(--cream); }
+.faq-item button svg { width: 17px; color: #687066; transition: transform .25s ease, color .25s ease; }
+.faq-item.open button svg { transform: rotate(90deg); color: var(--lime); }
+.faq-answer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s ease; }
+.faq-answer p { min-height: 0; overflow: hidden; margin: 0; color: #8b9288; font-size: 13px; line-height: 1.7; }
+.faq-item.open .faq-answer { grid-template-rows: 1fr; }
+.faq-item.open .faq-answer p { padding: 0 40px 22px 2px; }
+.faq-answer code { color: var(--lime); font-family: var(--font-mono); font-size: .86em; }
 
 .site-footer { margin-top: 30px; border-top: 1px solid var(--line); background: #090b09; }
 .footer-main { display: grid; grid-template-columns: .6fr 1fr .7fr; gap: 60px; align-items: center; padding-block: 55px; }
@@ -255,6 +290,8 @@ h1 em { color: var(--lime); font-style: normal; }
   .workflow-grid { grid-template-columns: 1fr; gap: 55px; }
   .workflow-copy { max-width: 600px; }
   .quickstart-card { grid-template-columns: 1fr; gap: 35px; padding: 48px; }
+  .docs-card-grid { grid-template-columns: 1fr 1fr; }
+  .faq-grid { grid-template-columns: 1fr; gap: 50px; }
   .footer-main { grid-template-columns: 1fr 1fr; }
   .footer-main p { grid-row: 2; }
   .footer-links { justify-content: flex-end; }
@@ -288,6 +325,7 @@ h1 em { color: var(--lime); font-style: normal; }
   .metric-definition { min-height: 320px; border-right: 0; border-bottom: 1px solid var(--line); }
   .metric-definition:last-child { border-bottom: 0; }
   .quickstart-card { padding: 34px 25px; }
+  .docs-card-grid { grid-template-columns: 1fr; }
   .footer-main { grid-template-columns: 1fr; gap: 25px; }
   .footer-main p { grid-row: auto; }
   .footer-links { justify-content: flex-start; }

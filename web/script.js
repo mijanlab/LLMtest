@@ -108,3 +108,18 @@ if (!reducedMotion) {
     stepItems[activeStep].classList.add('active');
   }, 2200);
 }
+
+document.querySelectorAll('.faq-item button').forEach((button) => {
+  button.addEventListener('click', () => {
+    const item = button.closest('.faq-item');
+    const willOpen = !item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach((entry) => {
+      entry.classList.remove('open');
+      entry.querySelector('button').setAttribute('aria-expanded', 'false');
+    });
+    if (willOpen) {
+      item.classList.add('open');
+      button.setAttribute('aria-expanded', 'true');
+    }
+  });
+});

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Documentation for installing, configuring, and using LLMtest.">
+  <title>Documentation — LLMtest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="docs.css"><script src="docs.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="docs-header"><div class="header-inner">
+  <a class="brand" href="../../index.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="m7 16 3-8 2 5 3-2 2 5"/></svg><span>LLM<b>test</b><small>Docs</small></span></a>
+  <nav class="header-nav"><a href="../../index.html">Website</a><a class="active" href="index.html">Documentation</a><a class="github-link" href="https://github.com/mijanlab/LLMtest" target="_blank" rel="noreferrer">GitHub</a></nav>
+  <button class="mobile-nav" aria-label="Open documentation menu" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+</div></header>
+<div class="docs-shell">
+  <aside class="sidebar" aria-label="Documentation navigation">
+    <div class="sidebar-group"><strong>Overview</strong><a class="active" href="index.html">Documentation home</a><a href="getting-started.html">Getting started</a></div>
+    <div class="sidebar-group"><strong>Use LLMtest</strong><a href="cli-reference.html">CLI reference</a><a href="reports.html">Reports and metrics</a><a href="security.html">Security</a></div>
+    <div class="sidebar-group"><strong>Project</strong><a href="https://github.com/mijanlab/LLMtest#quickstart">Repository README</a><a href="https://github.com/mijanlab/LLMtest/issues">Report an issue</a></div>
+  </aside>
+  <main class="doc-main" id="content">
+    <div class="breadcrumbs"><a href="../../index.html">LLMtest</a><span>/</span><span>Docs</span></div>
+    <span class="doc-kicker">Documentation</span><h1>Benchmark with confidence.</h1>
+    <p class="doc-lede">Everything you need to discover models, run streaming benchmarks, understand performance, and share decision-ready reports.</p>
+    <div class="hero-actions"><a class="primary-link" href="getting-started.html">Get started <svg viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a><a class="secondary-link" href="cli-reference.html">Browse CLI reference</a></div>
+    <div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input class="doc-search" type="search" placeholder="Filter documentation topics..." aria-label="Filter documentation topics"></div>
+    <div class="card-grid">
+      <a class="doc-card" href="getting-started.html"><span>Guide</span><h3>Getting started</h3><p>Install the CLI, connect an endpoint, and complete your first benchmark.</p><b>Read the guide</b></a>
+      <a class="doc-card" href="cli-reference.html"><span>Reference</span><h3>CLI commands</h3><p>Review positional arguments, flags, defaults, aliases, and examples.</p><b>View reference</b></a>
+      <a class="doc-card" href="reports.html"><span>Analysis</span><h3>Reports and metrics</h3><p>Learn how TTFT, total latency, throughput, and success rate are measured.</p><b>Understand results</b></a>
+      <a class="doc-card" href="security.html"><span>Trust</span><h3>Security model</h3><p>See how credentials are handled and what is stored in report files.</p><b>Review security</b></a>
+    </div>
+    <div class="no-results">No documentation topic matches that search.</div>
+    <h2 id="what-is">What is LLMtest?</h2><p>LLMtest is a cross-platform Python CLI for evaluating OpenAI-compatible endpoints. It discovers available models, sends streamed prompts concurrently, measures real response timing, and generates a standalone report. The benchmark core uses Python's standard library, while the packaged CLI depends only on Requests.</p>
+    <div class="callout"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg><div><strong>Local-first by design</strong><p>API keys remain in process memory, and generated HTML reports contain no external tracking or runtime dependencies.</p></div></div>
+    <h2 id="requirements">Requirements</h2><ul><li>Python 3.8 or newer</li><li>An OpenAI-compatible base URL</li><li>An API key when required by the provider</li><li>macOS, Linux, or Windows</li></ul>
+    <div class="page-nav"><span></span><a class="pager-link" href="getting-started.html"><small>Next</small>Getting started</a></div>
+  </main>
+  <aside class="toc" aria-label="On this page"><strong>On this page</strong><a href="#what-is">What is LLMtest?</a><a href="#requirements">Requirements</a></aside>
+</div>
+<footer class="docs-footer">LLMtest documentation · MIT License</footer><div class="toast" role="status">Code copied</div>
+</body></html>
