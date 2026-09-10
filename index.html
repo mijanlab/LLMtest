@@ -20,7 +20,7 @@
   <title>LLMtest — Know which model is actually fast</title>
   <link rel="canonical" href="https://mijanlab.github.io/LLMtest/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23080a09'/%3E%3Cpath d='M7 22l5-14 4 9 5-4 4 9' fill='none' stroke='%23b7f34a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <script>if("scrollRestoration" in history)history.scrollRestoration="manual";if(location.hash)history.replaceState(null,"",location.pathname+location.search);scrollTo(0,0);</script>
+  <script>if("scrollRestoration" in history)history.scrollRestoration="manual";const cleanHomePath=location.pathname.replace(/index\.html$/i,"");if(cleanHomePath!==location.pathname||location.hash)history.replaceState(null,"",cleanHomePath+location.search);scrollTo(0,0);</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -54,7 +54,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header" id="top">
     <div class="container nav-wrap">
-      <a class="brand" href="#top" aria-label="LLMtest home">
+      <a class="brand" href="./" aria-label="LLMtest home">
         <span class="brand-mark"><svg><use href="#icon-mark"></use></svg></span>
         <span>LLM<span>test</span></span>
       </a>
@@ -308,7 +308,7 @@
 
   <footer class="site-footer">
     <div class="container footer-main">
-      <a class="brand" href="#top"><span class="brand-mark"><svg><use href="#icon-mark"></use></svg></span><span>LLM<span>test</span></span></a>
+      <a class="brand" href="./" aria-label="LLMtest home"><span class="brand-mark"><svg><use href="#icon-mark"></use></svg></span><span>LLM<span>test</span></span></a>
       <p>Open-source LLM performance benchmarking, built for developers who measure before they choose.</p>
       <div class="footer-links"><a href="https://github.com/mijanlab/LLMtest" target="_blank" rel="noreferrer"><svg><use href="#icon-github"></use></svg> Repository</a><a href="web/docs/"><svg><use href="#icon-book"></use></svg> Documentation</a></div>
     </div>

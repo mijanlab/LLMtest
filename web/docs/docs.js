@@ -1,6 +1,10 @@
 const mobileButton = document.querySelector('.mobile-nav');
 const sidebar = document.querySelector('.sidebar');
 
+if (/\/index\.html$/i.test(window.location.pathname)) {
+  history.replaceState(null, '', `${window.location.pathname.replace(/index\.html$/i, '')}${window.location.search}${window.location.hash}`);
+}
+
 const progress = document.createElement('div');
 progress.className = 'docs-progress';
 progress.setAttribute('aria-hidden', 'true');
