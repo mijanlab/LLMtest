@@ -28,6 +28,8 @@
     <symbol id="icon-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
     <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
     <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
   </svg>
 
   <a class="skip-link" href="#main">Skip to content</a>
@@ -45,6 +47,7 @@
         <a href="#features">Features</a>
         <a href="#workflow">How it works</a>
         <a href="#metrics">Metrics</a>
+        <a href="web/docs/">Docs</a>
         <a class="nav-github" href="https://github.com/mijanlab/LLMtest" target="_blank" rel="noreferrer">
           <svg><use href="#icon-github"></use></svg> GitHub
         </a>
@@ -232,6 +235,50 @@
           </div>
           <div class="command-row"><code><span>$</span> <b id="install-command">pip3 install git+https://github.com/mijanlab/LLMtest.git</b></code><button class="copy-button" type="button" aria-label="Copy install command"><svg><use href="#icon-copy"></use></svg><span>Copy</span></button></div>
           <div class="install-note"><svg><use href="#icon-terminal"></use></svg> Then run <code>llmtest</code> from anywhere.</div>
+          <a class="install-guide-link" href="web/docs/getting-started.html">View the complete installation guide <svg><use href="#icon-arrow"></use></svg></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section docs-section" id="docs">
+      <div class="container">
+        <div class="section-heading reveal">
+          <div><span class="kicker">Documentation</span><h2>From first run to deep analysis.</h2></div>
+          <p>Practical guides for installing the CLI, configuring benchmarks, reading reports, and protecting credentials.</p>
+        </div>
+        <div class="docs-card-grid">
+          <a class="docs-card reveal" href="web/docs/getting-started.html">
+            <span class="docs-icon"><svg><use href="#icon-terminal"></use></svg></span>
+            <small>Start here</small><h3>Getting started</h3><p>Install LLMtest and run your first benchmark on any supported platform.</p>
+            <b>Open guide <svg><use href="#icon-chevron"></use></svg></b>
+          </a>
+          <a class="docs-card reveal" data-delay="60" href="web/docs/cli-reference.html">
+            <span class="docs-icon"><svg><use href="#icon-file"></use></svg></span>
+            <small>Reference</small><h3>CLI reference</h3><p>Every argument, flag, command, default value, and practical example.</p>
+            <b>View commands <svg><use href="#icon-chevron"></use></svg></b>
+          </a>
+          <a class="docs-card reveal" data-delay="120" href="web/docs/reports.html">
+            <span class="docs-icon"><svg><use href="#icon-chart"></use></svg></span>
+            <small>Explore data</small><h3>Reports and metrics</h3><p>Understand TTFT, throughput, success rate, exports, and comparisons.</p>
+            <b>Read metrics <svg><use href="#icon-chevron"></use></svg></b>
+          </a>
+          <a class="docs-card reveal" data-delay="180" href="web/docs/security.html">
+            <span class="docs-icon"><svg><use href="#icon-shield"></use></svg></span>
+            <small>Trust model</small><h3>Security</h3><p>Learn how API keys are handled and how offline reports keep data local.</p>
+            <b>Review security <svg><use href="#icon-chevron"></use></svg></b>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section faq-section" id="faq">
+      <div class="container faq-grid">
+        <div class="faq-intro reveal"><span class="kicker">Common questions</span><h2>Before your first run.</h2><p>Short answers to the questions developers usually ask before benchmarking an endpoint.</p><a href="web/docs/" class="text-link">Browse all documentation <svg><use href="#icon-arrow"></use></svg></a></div>
+        <div class="faq-list reveal" data-delay="100">
+          <article class="faq-item open"><button type="button" aria-expanded="true"><span>Which providers work with LLMtest?</span><svg><use href="#icon-chevron"></use></svg></button><div class="faq-answer"><p>Any service exposing OpenAI-compatible <code>/models</code> and streaming chat-completions endpoints, including hosted providers and local inference servers.</p></div></article>
+          <article class="faq-item"><button type="button" aria-expanded="false"><span>Does LLMtest store my API key?</span><svg><use href="#icon-chevron"></use></svg></button><div class="faq-answer"><p>No. The key is used from process memory for request authorization and is never written to benchmark reports or configuration files.</p></div></article>
+          <article class="faq-item"><button type="button" aria-expanded="false"><span>Can I compare only selected models?</span><svg><use href="#icon-chevron"></use></svg></button><div class="faq-answer"><p>Yes. Pass a model-name substring as a filter, then use the generated report to select two to four results for a focused comparison.</p></div></article>
+          <article class="faq-item"><button type="button" aria-expanded="false"><span>Do reports require an internet connection?</span><svg><use href="#icon-chevron"></use></svg></button><div class="faq-answer"><p>No. Generated HTML reports are self-contained and work offline. You can also export Markdown, CSV, and JSON files.</p></div></article>
         </div>
       </div>
     </section>
@@ -241,7 +288,7 @@
     <div class="container footer-main">
       <a class="brand" href="#top"><span class="brand-mark"><svg><use href="#icon-mark"></use></svg></span><span>LLM<span>test</span></span></a>
       <p>Open-source LLM performance benchmarking, built for developers who measure before they choose.</p>
-      <div class="footer-links"><a href="https://github.com/mijanlab/LLMtest" target="_blank" rel="noreferrer"><svg><use href="#icon-github"></use></svg> Repository</a><a href="https://github.com/mijanlab/LLMtest#quickstart" target="_blank" rel="noreferrer"><svg><use href="#icon-file"></use></svg> Documentation</a></div>
+      <div class="footer-links"><a href="https://github.com/mijanlab/LLMtest" target="_blank" rel="noreferrer"><svg><use href="#icon-github"></use></svg> Repository</a><a href="web/docs/"><svg><use href="#icon-book"></use></svg> Documentation</a></div>
     </div>
     <div class="container footer-bottom"><span>Built by Mijanur Rahman · MIT License</span><a href="#top">Back to top <svg><use href="#icon-arrow"></use></svg></a></div>
   </footer>
