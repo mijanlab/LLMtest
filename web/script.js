@@ -28,6 +28,39 @@ navigation.querySelectorAll('a').forEach((link) => {
   });
 });
 
+document.addEventListener('click', (event) => {
+  if (!navigation.classList.contains('open') || event.target.closest('.nav-wrap')) return;
+  menuButton.setAttribute('aria-expanded', 'false');
+  menuButton.setAttribute('aria-label', 'Open navigation');
+  navigation.classList.remove('open');
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || !navigation.classList.contains('open')) return;
+  menuButton.setAttribute('aria-expanded', 'false');
+  menuButton.setAttribute('aria-label', 'Open navigation');
+  navigation.classList.remove('open');
+  menuButton.focus();
+});
+
+const sectionLinks = [...navigation.querySelectorAll('a[href^="#"]')];
+const trackedSections = sectionLinks.map((link) => document.querySelector(link.hash)).filter(Boolean);
+if (trackedSections.length) {
+  const syncActiveSection = () => {
+    const marker = window.scrollY + window.innerHeight * 0.35;
+    const current = trackedSections.filter((section) => section.offsetTop <= marker).at(-1);
+    sectionLinks.forEach((link) => {
+      const active = current && link.hash === `#${current.id}`;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  };
+  syncActiveSection();
+  window.addEventListener('scroll', syncActiveSection, { passive: true });
+  window.addEventListener('resize', syncActiveSection);
+}
+
 const formatCount = (value) => Number.isInteger(value) ? String(value) : value.toFixed(1);
 const animateCounter = (element) => {
   if (element.dataset.animated) return;

@@ -6,6 +6,9 @@ body::before { content:""; position:fixed; inset:0; z-index:-1; opacity:.025; po
 .docs-progress { position:fixed; z-index:60; top:0; left:0; width:var(--progress,0%); height:2px; background:linear-gradient(90deg,#628b2d,var(--lime)); box-shadow:0 0 10px rgba(183,243,74,.4); transition:width .08s linear; }
 a { color:inherit; text-decoration:none; }
 button,input { font:inherit; }
+button { cursor:pointer; }
+:where(a,button,input):focus-visible { outline:2px solid var(--lime); outline-offset:4px; }
+.doc-main [id] { scroll-margin-top:88px; }
 svg { width:1.2em; height:1.2em; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .skip { position:fixed; top:8px; left:8px; z-index:100; transform:translateY(-150%); padding:9px 12px; border-radius:6px; background:var(--lime); color:#10140b; }
 .skip:focus { transform:none; }

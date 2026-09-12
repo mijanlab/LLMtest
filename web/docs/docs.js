@@ -27,6 +27,17 @@ if (mobileButton && sidebar) {
     sidebar.classList.remove('open');
     mobileButton.setAttribute('aria-expanded', 'false');
   }));
+  document.addEventListener('click', (event) => {
+    if (!sidebar.classList.contains('open') || event.target.closest('.docs-header') || event.target.closest('.sidebar')) return;
+    sidebar.classList.remove('open');
+    mobileButton.setAttribute('aria-expanded', 'false');
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !sidebar.classList.contains('open')) return;
+    sidebar.classList.remove('open');
+    mobileButton.setAttribute('aria-expanded', 'false');
+    mobileButton.focus();
+  });
 }
 
 const toast = document.querySelector('.toast');
