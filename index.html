@@ -248,14 +248,14 @@
         <div class="quickstart-copy">
           <span class="kicker">Ready when you are</span>
           <h2>Your fastest model is one command away.</h2>
-          <p>Install globally, point LLMtest at your endpoint, and get a complete interactive report in minutes.</p>
+          <p>One command installs everything it needs. No Python, no admin rights. Point LLMtest at your endpoint and get a complete interactive report in minutes.</p>
         </div>
         <div class="install-box">
           <div class="install-tabs" role="tablist" aria-label="Choose operating system">
-            <button class="active" type="button" role="tab" aria-selected="true" data-command="pip3 install git+https://github.com/mijanlab/LLMtest.git">macOS / Linux</button>
-            <button type="button" role="tab" aria-selected="false" data-command="pip install git+https://github.com/mijanlab/LLMtest.git">Windows</button>
+            <button class="active" type="button" role="tab" aria-selected="true" data-command="curl -fsSL https://raw.githubusercontent.com/mijanlab/LLMtest/main/install.sh | sh">macOS / Linux</button>
+            <button type="button" role="tab" aria-selected="false" data-os="windows" data-command="irm https://raw.githubusercontent.com/mijanlab/LLMtest/main/install.ps1 | iex">Windows</button>
           </div>
-          <div class="command-row"><code><span>$</span> <b id="install-command">pip3 install git+https://github.com/mijanlab/LLMtest.git</b></code><button class="copy-button" type="button" aria-label="Copy install command"><svg><use href="#icon-copy"></use></svg><span>Copy</span></button></div>
+          <div class="command-row"><code><span>$</span> <b id="install-command">curl -fsSL https://raw.githubusercontent.com/mijanlab/LLMtest/main/install.sh | sh</b></code><button class="copy-button" type="button" aria-label="Copy install command"><svg><use href="#icon-copy"></use></svg><span>Copy</span></button></div>
           <div class="install-note"><svg><use href="#icon-terminal"></use></svg> Then run <code>llmtest</code> from anywhere.</div>
           <a class="install-guide-link" href="web/docs/getting-started.html">View the complete installation guide <svg><use href="#icon-arrow"></use></svg></a>
         </div>

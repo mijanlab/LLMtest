@@ -11,6 +11,7 @@ import sys
 import time
 import json
 import shutil
+import tempfile
 import argparse
 import subprocess
 import webbrowser
@@ -45,15 +46,110 @@ def is_pipx_environment():
     exec_lower = sys.executable.lower()
     return "pipx" in prefix_lower or "pipx" in exec_lower
 
+# Same default and LLMTEST_SOURCE override as install.sh / install.ps1.
+SOURCE_ZIP_URL = os.environ.get("LLMTEST_SOURCE") or "https://github.com/mijanlab/LLMtest/archive/refs/heads/main.zip"
+
+def is_uv_tool_environment():
+    """Detects if running inside a `uv tool` environment (how install.sh / install.ps1 install llmtest)."""
+    return os.path.exists(os.path.join(sys.prefix, "uv-receipt.toml"))
+
+def find_uv():
+    """Locates the uv executable, including its default install dirs when they aren't on PATH."""
+    found = shutil.which("uv")
+    if found:
+        return found
+    exe = "uv.exe" if os.name == "nt" else "uv"
+    for directory in (os.environ.get("UV_INSTALL_DIR"), os.path.expanduser("~/.local/bin"), os.path.expanduser("~/.cargo/bin")):
+        if directory and os.path.isfile(os.path.join(directory, exe)):
+            return os.path.join(directory, exe)
+    return None
+
+def move_uv_install_aside(uv):
+    """
+    Windows won't let uv delete or overwrite this environment while llmtest is running from it,
+    and a half-finished attempt leaves llmtest broken. Renaming in-use files is allowed, though,
+    so move the environment and its launchers out of uv's way first.
+    Returns (aside_dir, moves) so the caller can undo the move or delete the old copy, or None.
+    """
+    if os.name != "nt":
+        return None
+    try:
+        bin_dir = subprocess.run([uv, "tool", "dir", "--bin"], capture_output=True, text=True).stdout.strip()
+    except Exception:
+        bin_dir = ""
+    sources = [sys.prefix] + [
+        os.path.join(bin_dir, name) for name in ("llmtest.exe", "llm-test.exe")
+        if bin_dir and os.path.exists(os.path.join(bin_dir, name))
+    ]
+    # Renames only work within one drive: try the temp dir, then next to uv's own data dir.
+    for base in (tempfile.gettempdir(), os.path.dirname(os.path.dirname(sys.prefix))):
+        moves = []
+        try:
+            aside = tempfile.mkdtemp(prefix="llmtest-old-", dir=base)
+            for i, src in enumerate(sources):
+                dst = os.path.join(aside, f"{i}-{os.path.basename(src)}")
+                os.rename(src, dst)
+                moves.append((src, dst))
+            return aside, moves
+        except OSError:
+            restore_moved_install((None, moves))
+    return None
+
+def restore_moved_install(moved):
+    for src, dst in reversed(moved[1]):
+        try:
+            os.rename(dst, src)
+        except OSError:
+            pass
+    if moved[0]:
+        shutil.rmtree(moved[0], ignore_errors=True)
+
+def delete_after_exit(path):
+    """Deletes path a few seconds after llmtest exits, once Windows releases its files."""
+    try:
+        subprocess.Popen(
+            f'cmd /c ping -n 4 127.0.0.1 >nul & rmdir /s /q "{path}"',
+            creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP,
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        pass
+
 def handle_update():
-    """Updates llmtest to the latest version from GitHub across pipx, pip, and pip3."""
+    """Updates llmtest to the latest version from GitHub across uv, pipx, pip, and pip3."""
     print(f"\n{CLR_BOLD}⚡ Updating llmtest to the latest version from GitHub...{CLR_RESET}")
     repo_url = "git+https://github.com/mijanlab/LLMtest.git"
     success = False
     error_msgs = []
 
-    # 1. If running under pipx or pipx is present
-    if is_pipx_environment() and shutil.which("pipx"):
+    # 1. Installed with the one-line installer (uv tool)
+    uv = find_uv() if is_uv_tool_environment() else None
+    if uv:
+        moved = move_uv_install_aside(uv)
+        cmd = [uv, "tool", "install", "--force", "--reinstall", "--refresh", SOURCE_ZIP_URL]
+        try:
+            res = subprocess.run(cmd)
+            if res.returncode == 0:
+                success = True
+            else:
+                error_msgs.append(f"uv exited with code {res.returncode}")
+        except Exception as e:
+            error_msgs.append(f"uv error: {e}")
+        if moved:
+            if success:
+                delete_after_exit(moved[0])
+            else:
+                restore_moved_install(moved)
+        if not success:
+            # pip can't update a uv-managed environment, so don't fall through to it.
+            print(f" {CLR_RED}✖ Update failed. Re-run the installer to update:{CLR_RESET}")
+            print(f"   {CLR_CYAN}https://github.com/mijanlab/LLMtest#quickstart{CLR_RESET}\n")
+            for msg in error_msgs:
+                print(f"   {CLR_GRAY}{msg}{CLR_RESET}")
+            sys.exit(1)
+
+    # 2. If running under pipx or pipx is present
+    if not success and is_pipx_environment() and shutil.which("pipx"):
         cmd = ["pipx", "install", "--force", repo_url]
         try:
             res = subprocess.run(cmd)
@@ -62,7 +158,7 @@ def handle_update():
         except Exception as e:
             error_msgs.append(f"pipx error: {e}")
 
-    # 2. Try sys.executable -m pip if not succeeded
+    # 3. Try sys.executable -m pip if not succeeded
     if not success:
         cmd = [sys.executable, "-m", "pip", "install", "--upgrade", "--no-cache-dir", repo_url]
         try:
@@ -74,7 +170,7 @@ def handle_update():
         except Exception as e:
             error_msgs.append(f"pip error: {e}")
 
-    # 3. Fallback to global pip3 / pip
+    # 4. Fallback to global pip3 / pip
     if not success:
         for bin_name in ["pip3", "pip"]:
             if shutil.which(bin_name):
@@ -105,7 +201,25 @@ def handle_uninstall():
     print(f"\n{CLR_BOLD}🗑️  Uninstalling llmtest...{CLR_RESET}")
     success = False
 
-    if is_pipx_environment() and shutil.which("pipx"):
+    uv = find_uv() if is_uv_tool_environment() else None
+    if uv:
+        moved = move_uv_install_aside(uv)
+        if moved:
+            # On Windows, moving the environment and launchers away is the whole uninstall
+            # (uv keeps no other state); the old copy is deleted once llmtest exits.
+            delete_after_exit(moved[0])
+            success = True
+        else:
+            try:
+                success = subprocess.run([uv, "tool", "uninstall", "llmtest"]).returncode == 0
+            except Exception:
+                pass
+        if not success:
+            print(f" {CLR_RED}✖ Uninstall failed. You can run manually:{CLR_RESET}")
+            print(f"   {CLR_CYAN}uv tool uninstall llmtest{CLR_RESET}\n")
+            sys.exit(1)
+
+    if not success and is_pipx_environment() and shutil.which("pipx"):
         cmd = ["pipx", "uninstall", "llmtest"]
         try:
             res = subprocess.run(cmd)
