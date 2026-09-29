@@ -227,7 +227,7 @@ h1 em { color: var(--lime); font-style: normal; }
 .install-tabs button { padding: 7px 10px; border: 0; border-radius: 5px; background: transparent; color: #697067; font-family: var(--font-mono); font-size: 8px; cursor: pointer; }
 .install-tabs button.active { background: #242b21; color: var(--cream); }
 .command-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 21px 18px; }
-.command-row code { min-width: 0; overflow: hidden; color: #c2c9bf; font-family: var(--font-mono); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.command-row code { min-width: 0; color: #c2c9bf; font-family: var(--font-mono); font-size: 9px; overflow-wrap: anywhere; }
 .command-row code span { margin-right: 5px; color: var(--lime); }
 .command-row code b { font-weight: 400; }
 .copy-button { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: #151a15; color: #a3aaa0; font-size: 9px; cursor: pointer; }

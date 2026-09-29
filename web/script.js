@@ -74,17 +74,23 @@ document.querySelectorAll('.trust-strip [data-count]').forEach((element) => coun
 
 const installTabs = document.querySelectorAll('.install-tabs button');
 const installCommand = document.querySelector('#install-command');
-installTabs.forEach((tab) => {
-  tab.addEventListener('click', () => {
-    installTabs.forEach((item) => {
-      item.classList.remove('active');
-      item.setAttribute('aria-selected', 'false');
-    });
-    tab.classList.add('active');
-    tab.setAttribute('aria-selected', 'true');
-    installCommand.textContent = tab.dataset.command;
+function selectInstallTab(tab) {
+  installTabs.forEach((item) => {
+    item.classList.remove('active');
+    item.setAttribute('aria-selected', 'false');
   });
-});
+  tab.classList.add('active');
+  tab.setAttribute('aria-selected', 'true');
+  installCommand.textContent = tab.dataset.command;
+}
+installTabs.forEach((tab) => tab.addEventListener('click', () => selectInstallTab(tab)));
+
+// Preselect the command for the visitor's OS; the other tab stays one click away.
+const visitorPlatform = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent;
+if (/win/i.test(visitorPlatform)) {
+  const windowsTab = document.querySelector('.install-tabs [data-os="windows"]');
+  if (windowsTab) selectInstallTab(windowsTab);
+}
 
 const toast = document.querySelector('.copy-toast');
 let toastTimer;

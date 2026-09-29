@@ -43,17 +43,35 @@
 
 ## Quickstart
 
-Install globally once in your terminal:
+Install with one command. You don't need Python, pip, or git first. The installer sets up everything it needs, with no admin rights or `sudo`:
 
 ```bash
 # macOS / Linux
-pip3 install git+https://github.com/mijanlab/LLMtest.git
-# or with pipx (recommended for Homebrew / isolated CLI)
-pipx install git+https://github.com/mijanlab/LLMtest.git
-
-# Windows
-pip install git+https://github.com/mijanlab/LLMtest.git
+curl -fsSL https://raw.githubusercontent.com/mijanlab/LLMtest/main/install.sh | sh
 ```
+
+```powershell
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/mijanlab/LLMtest/main/install.ps1 | iex
+```
+
+<details>
+<summary>How it works, and other ways to install</summary>
+
+The installer uses [uv](https://docs.astral.sh/uv/), a fast Python tool installer, to put `llmtest` in its own isolated environment, like `pipx` does. If uv isn't installed, the script installs it. If your system doesn't have a suitable Python, uv downloads one just for its tools, leaving your system Python untouched. Running the installer again updates `llmtest`.
+
+Prefer to manage it yourself? Any of these work:
+
+```bash
+uv tool install https://github.com/mijanlab/LLMtest/archive/refs/heads/main.zip
+pipx install git+https://github.com/mijanlab/LLMtest.git
+pip install git+https://github.com/mijanlab/LLMtest.git
+
+# Windows cmd.exe
+powershell -c "irm https://raw.githubusercontent.com/mijanlab/LLMtest/main/install.ps1 | iex"
+```
+
+</details>
 
 Launch the interactive prompt from anywhere:
 
@@ -122,7 +140,7 @@ llmtest uninstall
 | :--- | :--- | :--- | :--- |
 | `endpoint` | `string` | *(prompted)* | Base URL for OpenAI-compatible API (e.g. `https://api.openai.com/v1`) |
 | `update` | `command` | — | Upgrade `llmtest` directly to the latest GitHub release |
-| `uninstall` | `command` | — | Cleanly remove `llmtest` from your Python environment |
+| `uninstall` | `command` | — | Cleanly remove `llmtest` (works for the installer, pipx, and pip installs) |
 | `api_key` | `string` | *(prompted)* | Bearer authentication key (optional for local/unauthenticated endpoints) |
 | `filter` | `string` | `""` | Substring match to filter model IDs (e.g. `claude`, `llama3`, `deepseek`) |
 | `concurrency` | `int` | `3` | Number of concurrent requests to execute in parallel |
